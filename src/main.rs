@@ -18,7 +18,7 @@ fn main() {
 
 fn take_input() -> String {
     let mut stringy: String = String::new();
-    std::io::stdin().read_line(&mut stringy);
+    std::io::stdin().read_line(&mut stringy).expect("tf u think ur doing");
     stringy
 }
 fn split_input(raw: String) -> Vec<String> {
@@ -34,7 +34,7 @@ enum Bat {
     Begin(u16),
     End(u16),
     Comma,
-    Var([char; 5]),
+    Func([char; 5]),
 }
 impl Bat {
     fn extract_val(self) -> i32 {
@@ -51,7 +51,6 @@ impl Bat {
     }
 }
 fn get_five(word: String) -> [char; 5] {
-    let le: usize = word.len();
     let mut each = word.chars();
     let mut out: [char; 5] = [' '; 5];
     for o in 0..5 {
@@ -82,7 +81,7 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Bat>) 
         Some(v) => return *v,
         None => (),
     }
-    return Bat::Var(name);
+    return Bat::Func(name);
 }
 fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Bat>) -> Vec<Bat> {
     let mut depth: u16 = 0;

@@ -1,6 +1,9 @@
 fn main() {
     loop {
-        let dong = order_operations(tokenize(split_input(take_input()))).extract_val();
+        let dong = complete(
+            tokenize(
+            split_input(
+            take_input())));
         println!("{:?}", dong);
     }
 }
@@ -29,13 +32,13 @@ impl Bat {
     fn extract_val(self) -> i32 {
         match self {
             Self::Val(v) => v,
-            _ => panic!("attempted to extract Val from non-value Bat"),
+            e => panic!("attempted to extract Val from non-value {:?}", e),
         }
     }
     fn extract_rel(self) -> BinOp{
         match self {
             Self::Rel(v) => v,
-            _ => panic!("attempted to extract BinOp from non-operator Bat"),
+            e => panic!("attempted to extract BinOp from non-operator {:?}", e),
         }
     }
 }
@@ -51,20 +54,20 @@ fn get_five(word: String) -> [char; 5] {
     }
     out
 }
-fn encode_one(word: String, mut depth: u16) -> Bat {
+fn encode_one(word: String, depth: &mut u16) -> Bat {
     match word.parse::<i32>() {
         Ok(v) => return Bat::Val(v),
         Err(_) => (),
     };
     match word.as_str() {
         "," => return Bat::Comma,
-        "(" => {depth += 1; return Bat::Begin(depth-1); },
-        ")" => {depth -= 1; return Bat::End(depth); },
+        "(" => {*depth += 1; return Bat::Begin(*depth); },
+        ")" => {*depth -= 1; return Bat::End(*depth+1); },
         "+" => return Bat::Rel(BinOp::Add),
         "-" => return Bat::Rel(BinOp::Sub),
         "*" => return Bat::Rel(BinOp::Mul),
         "/" => return Bat::Rel(BinOp::Div),
-        v => panic!("invalid token {}", v),
+        _ => (),
     };
     let name: [char; 5] = get_five(word);
     // look for existing functions or variables
@@ -74,7 +77,7 @@ fn tokenize(chain: Vec<String>) -> Vec<Bat> {
     let mut depth: u16 = 0;
     let mut processed: Vec<Bat> = Vec::new();
     for word in chain {
-        processed.push(encode_one(word, depth));
+        processed.push(encode_one(word, &mut depth));
     };
     processed
 }
@@ -119,5 +122,42 @@ fn order_operations(simple: Vec<Bat>) -> Bat {
             None => (),
         };
         return shrinking[0];
+    }
+}
+
+fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
+    let mut start: Option<usize> = None;
+    let mut finish: Option<usize> = None;
+    let mut s_max: u16 = 0;
+    let mut f_max: u16 = 0;
+    for (indx, token) in content.iter().enumerate() {
+        match *token {
+            Bat::Begin(d) => {
+                if d > s_max { start = Some(indx); s_max = d }
+            }
+            Bat::End(d) => {
+                if d > f_max { finish = Some(indx); f_max = d }
+            }
+            _ => (),
+        }
+    };
+    match (start, finish) {
+        (Some(_), None) | (None, Some(_)) => panic!("unopened ) or unclosed ("),
+        (Some(s), Some(f)) => Some((s,f)),
+        (None, None) => None,
+    }
+}
+fn paren_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
+    let replace: Bat = order_operations(current[start+1..end].to_vec());
+    current.drain(start..end+1);
+    current.insert(start, replace);
+}
+fn complete(input: Vec<Bat>) -> i32 {
+    let mut shrinking: Vec<Bat> = input;
+    loop {
+        match find_deepest(shrinking.clone()) {
+            Some((s,f)) => paren_replace(&mut shrinking, s, f),
+            None => return order_operations(shrinking).extract_val(),
+        }
     }
 }

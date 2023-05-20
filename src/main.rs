@@ -1,10 +1,18 @@
+use std::collections::HashMap;
+
 fn main() {
+
+    let mut variables: HashMap<[char; 5], Bat> = HashMap::new();
+
     loop {
-        let dong = complete(
-            tokenize(
-            split_input(
-            take_input())));
-        println!("{:?}", dong);
+        let chain = split_input(take_input());
+
+        match chain[0].as_str() {
+            "var" => { variables.insert( get_five(chain[1].as_str().to_string()),
+                Bat::Val(complete(tokenize(chain[2..].to_vec(), &variables))) ); },
+            // put function defining here
+            _ => println!("[Σ] {}", complete(tokenize(chain, &variables))),
+        };
     }
 }
 
@@ -26,7 +34,7 @@ enum Bat {
     Begin(u16),
     End(u16),
     Comma,
-    Func([char; 5]),
+    Var([char; 5]),
 }
 impl Bat {
     fn extract_val(self) -> i32 {
@@ -43,7 +51,7 @@ impl Bat {
     }
 }
 fn get_five(word: String) -> [char; 5] {
-    let mut le: usize = word.len();
+    let le: usize = word.len();
     let mut each = word.chars();
     let mut out: [char; 5] = [' '; 5];
     for o in 0..5 {
@@ -54,7 +62,7 @@ fn get_five(word: String) -> [char; 5] {
     }
     out
 }
-fn encode_one(word: String, depth: &mut u16) -> Bat {
+fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Bat>) -> Bat {
     match word.parse::<i32>() {
         Ok(v) => return Bat::Val(v),
         Err(_) => (),
@@ -70,14 +78,17 @@ fn encode_one(word: String, depth: &mut u16) -> Bat {
         _ => (),
     };
     let name: [char; 5] = get_five(word);
-    // look for existing functions or variables
-    return Bat::Func(name);
+    match varlist.get(&name) {
+        Some(v) => return *v,
+        None => (),
+    }
+    return Bat::Var(name);
 }
-fn tokenize(chain: Vec<String>) -> Vec<Bat> {
+fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Bat>) -> Vec<Bat> {
     let mut depth: u16 = 0;
     let mut processed: Vec<Bat> = Vec::new();
     for word in chain {
-        processed.push(encode_one(word, &mut depth));
+        processed.push(encode_one(word, &mut depth, varlist));
     };
     processed
 }
@@ -161,3 +172,5 @@ fn complete(input: Vec<Bat>) -> i32 {
         }
     }
 }
+
+// g

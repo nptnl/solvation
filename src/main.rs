@@ -1,10 +1,14 @@
+pub mod comp;
+
+use comp::Comp;
 use std::collections::HashMap;
 
 fn main() {
 
     let mut variables: HashMap<[char; 5], Bat> = HashMap::new();
     let mut functions: HashMap<[char; 5], (u16, Vec<Bat>)> = HashMap::new();
-    let mut ans: i32;
+
+    let mut ans: Comp;
 
     loop {
         let chain = split_input(take_input());
@@ -30,7 +34,7 @@ fn main() {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Bat {
-    Val(i32),
+    Val(Comp),
     Rel(BinOp),
     Begin(u16),
     End(u16),
@@ -39,7 +43,7 @@ enum Bat {
     Inp(u16),
 }
 impl Bat {
-    fn extract_val(self) -> i32 {
+    fn extract_val(self) -> Comp {
         match self {
             Self::Val(v) => v,
             e => panic!("attempted to extract Val from non-value {:?}", e),
@@ -90,7 +94,7 @@ fn get_five(word: String) -> [char; 5] {
 }
 fn encode_one(word: String, depth: &mut u16,
     varlist: &HashMap<[char; 5], Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
-    match word.parse::<i32>() {
+    match word.parse::<Comp>() {
         Ok(v) => return Bat::Val(v),
         Err(_) => (),
     };
@@ -130,7 +134,7 @@ fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Bat>, fnlist: &Hash
     processed
 }
 
-fn binary_operate(operation: BinOp, first: i32, last: i32) -> i32 {
+fn binary_operate(operation: BinOp, first: Comp, last: Comp) -> Comp {
     match operation {
         BinOp::Add => first + last,
         BinOp::Sub => first - last,
@@ -213,7 +217,7 @@ fn order_operations(simple: Vec<Bat>) -> Bat {
         return shrinking[0];
     }
 }
-fn complete(input: Vec<Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> i32 {
+fn complete(input: Vec<Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Comp {
     let mut shrinking: Vec<Bat> = input;
     loop {
         match find_deepest(shrinking.clone()) {

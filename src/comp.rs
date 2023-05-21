@@ -1,0 +1,114 @@
+use std::ops;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Comp {
+    r: f32,
+    i: f32,
+}
+impl Comp {
+    pub fn new(r: f32, i: f32) -> Self {
+        Self { r, i }
+    }
+    pub fn nre(r: f32) -> Self {
+        Self { r, i: 0.0 }
+    }
+    pub fn nim(i: f32) -> Self {
+        Self { r: 0.0, i }
+    }
+    pub fn square(self) -> Self {
+        self * self
+    }
+    pub fn inv(self) -> Self {
+        let divisor: f32 = 1.0 / (self.r*self.r + self.i*self.i);
+        Self {
+            r: self.r * divisor,
+            i: -self.i * divisor
+        }
+    }
+}
+
+impl ops::Add<Comp> for Comp {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self { r: self.r + other.r, i: self.i + other.i }
+    }
+}
+impl ops::Sub<Comp> for Comp {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
+        Self { r: self.r - other.r, i: self.i - other.i }
+    }
+}
+impl ops::Mul<Comp> for Comp {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self {
+        Self { r: self.r * other.r - self.i * other.i, i: self.i * other.r + self.r * other.i }
+    }
+}
+impl ops::Div<Comp> for Comp {
+    type Output = Self;
+    fn div(self, other: Self) -> Self {
+        self * other.inv()
+    }
+}
+impl ops::AddAssign<Comp> for Comp {
+    fn add_assign(&mut self, other: Comp) {
+        *self = *self + other
+    }
+}
+impl ops::SubAssign<Comp> for Comp {
+    fn sub_assign(&mut self, other: Comp) {
+        *self = *self - other
+    }
+}
+impl ops::MulAssign<Comp> for Comp {
+    fn mul_assign(&mut self, other: Comp) {
+        *self = *self * other
+    }
+}
+impl ops::DivAssign<Comp> for Comp {
+    fn div_assign(&mut self, other: Comp) {
+        *self = *self / other
+    }
+}
+
+impl std::str::FromStr for Comp {
+    type Err = ();
+    fn from_str(slice: &str) -> Result<Comp, Self::Err> {
+        let last: usize = slice.len() - 1;
+        if &slice[last..last+1] == "i" {
+            match slice.rfind('+') {
+                Some(v) => Ok( Comp {
+                    r: slice[..v].parse::<f32>().unwrap(),
+                    i: slice[v+1..last].parse::<f32>().unwrap()
+                } ),
+                None => match slice.rfind('-') {
+                    Some(v) => Ok( Comp {
+                        r: slice[..v].parse::<f32>().unwrap(),
+                        i: -slice[v+1..last].parse::<f32>().unwrap()
+                    } ),
+                    None => Ok( Comp {
+                        r: 0.0,
+                        i: slice[..last].parse::<f32>().unwrap()
+                    } ),
+                },
+            }
+        } else {
+            match slice.parse::<f32>() {
+                Ok(v) => Ok(Comp {r: v, i: 0.0 }),
+                Err(_) => Err(()),
+            }
+        }
+    }
+}
+impl std::fmt::Display for Comp {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if self.i < 0.0 {
+            write!(f, "{}-{}i", self.r, -self.i)
+        } else if self.i > 0.0 {
+            write!(f, "{}+{}i", self.r, self.i)
+        } else {
+            write!(f, "{}", self.r)
+        }
+    }
+}

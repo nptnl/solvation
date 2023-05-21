@@ -4,6 +4,7 @@ fn main() {
 
     let mut variables: HashMap<[char; 5], Bat> = HashMap::new();
     let mut functions: HashMap<[char; 5], (u16, Vec<Bat>)> = HashMap::new();
+    let mut ans: i32;
 
     loop {
         let chain = split_input(take_input());
@@ -18,7 +19,11 @@ fn main() {
                 ( chain[2].parse::<u16>().unwrap(), tokenize(chain[3..].to_vec(), &variables, &functions) ) );
             },
             // put function defining here
-            _ => println!("[Σ] {}", complete(tokenize(chain, &variables, &functions), &functions)),
+            _ => {
+                ans = complete(tokenize(chain, &variables, &functions), &functions);
+                variables.insert( ['a', 'n', 's', ' ', ' '], Bat::Val(ans) );
+                println!("[Σ] {ans}");
+            },
         };
     }
 }

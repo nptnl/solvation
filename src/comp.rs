@@ -2,24 +2,24 @@ use std::ops;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Comp {
-    r: f32,
-    i: f32,
+    r: f64,
+    i: f64,
 }
 impl Comp {
-    pub fn new(r: f32, i: f32) -> Self {
+    pub fn new(r: f64, i: f64) -> Self {
         Self { r, i }
     }
-    pub fn nre(r: f32) -> Self {
+    pub fn nre(r: f64) -> Self {
         Self { r, i: 0.0 }
     }
-    pub fn nim(i: f32) -> Self {
+    pub fn nim(i: f64) -> Self {
         Self { r: 0.0, i }
     }
     pub fn square(self) -> Self {
         self * self
     }
     pub fn inv(self) -> Self {
-        let divisor: f32 = 1.0 / (self.r*self.r + self.i*self.i);
+        let divisor: f64 = 1.0 / (self.r*self.r + self.i*self.i);
         Self {
             r: self.r * divisor,
             i: -self.i * divisor
@@ -79,22 +79,22 @@ impl std::str::FromStr for Comp {
         if &slice[last..last+1] == "i" {
             match slice.rfind('+') {
                 Some(v) => Ok( Comp {
-                    r: slice[..v].parse::<f32>().unwrap(),
-                    i: slice[v+1..last].parse::<f32>().unwrap()
+                    r: slice[..v].parse::<f64>().unwrap(),
+                    i: slice[v+1..last].parse::<f64>().unwrap()
                 } ),
                 None => match slice.rfind('-') {
                     Some(v) => Ok( Comp {
-                        r: slice[..v].parse::<f32>().unwrap(),
-                        i: -slice[v+1..last].parse::<f32>().unwrap()
+                        r: slice[..v].parse::<f64>().unwrap(),
+                        i: -slice[v+1..last].parse::<f64>().unwrap()
                     } ),
                     None => Ok( Comp {
                         r: 0.0,
-                        i: slice[..last].parse::<f32>().unwrap()
+                        i: slice[..last].parse::<f64>().unwrap()
                     } ),
                 },
             }
         } else {
-            match slice.parse::<f32>() {
+            match slice.parse::<f64>() {
                 Ok(v) => Ok(Comp {r: v, i: 0.0 }),
                 Err(_) => Err(()),
             }
@@ -112,3 +112,5 @@ impl std::fmt::Display for Comp {
         }
     }
 }
+
+pub static ZERO: Comp = Comp { r: 0.0, i: 0.0 };

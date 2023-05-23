@@ -2,8 +2,8 @@ use std::ops;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Comp {
-    r: f64,
-    i: f64,
+    pub r: f64,
+    pub i: f64,
 }
 impl Comp {
     pub fn new(r: f64, i: f64) -> Self {
@@ -27,6 +27,15 @@ impl Comp {
     }
 }
 
+impl ops::Neg for Comp {
+    type Output = Self;
+    fn neg(self) -> Self {
+        Self {
+            r: -self.r,
+            i: -self.i,
+        }
+    }
+}
 impl ops::Add<Comp> for Comp {
     type Output = Self;
     fn add(self, other: Self) -> Self {
@@ -115,3 +124,4 @@ impl std::fmt::Display for Comp {
 }
 
 pub static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
+pub static ONE: Comp = Comp { r: 1.0, i: 0.0 };

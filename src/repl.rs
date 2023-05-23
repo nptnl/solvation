@@ -8,6 +8,10 @@ pub fn repl() {
     let mut variables: HashMap<[char; 5], Bat> = HashMap::new();
     let mut functions: HashMap<[char; 5], (u16, Vec<Bat>)> = HashMap::new();
 
+    for var in preset::PRE_VAR {
+        variables.insert(var.0, Bat::Val(var.1));
+    }
+
     let mut ans: Comp;
 
     loop {
@@ -81,7 +85,7 @@ fn split_input(raw: String) -> Vec<String> {
     // add whitespace for binary operations
     .split_whitespace().map(|x| x.to_string()).collect()
 }
-fn get_five(word: String) -> [char; 5] {
+pub(crate) fn get_five(word: String) -> [char; 5] {
     let mut each = word.chars();
     let mut out: [char; 5] = [' '; 5];
     for o in 0..5 {

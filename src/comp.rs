@@ -75,8 +75,9 @@ impl ops::DivAssign<Comp> for Comp {
 impl std::str::FromStr for Comp {
     type Err = ();
     fn from_str(slice: &str) -> Result<Comp, Self::Err> {
-        let last: usize = slice.len() - 1;
-        if &slice[last..last+1] == "i" {
+        let mut chlist = slice.chars();
+        let last = chlist.clone().count() - 1;
+        if chlist.nth(last).unwrap() == 'i' {
             match slice.rfind('+') {
                 Some(v) => Ok( Comp {
                     r: slice[..v].parse::<f64>().unwrap(),

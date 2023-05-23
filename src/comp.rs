@@ -51,7 +51,10 @@ impl ops::Sub<Comp> for Comp {
 impl ops::Mul<Comp> for Comp {
     type Output = Self;
     fn mul(self, other: Self) -> Self {
-        Self { r: self.r * other.r - self.i * other.i, i: self.i * other.r + self.r * other.i }
+        Self {
+            r: self.r * other.r - self.i * other.i,
+            i: self.i * other.r + self.r * other.i
+        }
     }
 }
 impl ops::Div<Comp> for Comp {
@@ -125,3 +128,4 @@ impl std::fmt::Display for Comp {
 
 pub static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
 pub static ONE: Comp = Comp { r: 1.0, i: 0.0 };
+pub static II: Comp = Comp { r: 0.0, i: 1.0 };

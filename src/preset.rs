@@ -1,3 +1,4 @@
+use crate::comp;
 use crate::comp::Comp;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -5,18 +6,48 @@ pub enum BasicFn {
     Exp,
     Sin,
     Cos,
+    Ln,
 }
 
-
 fn raw_exp(x: Comp) -> Comp {
-    let mut total: Comp = Comp::nre(0.0);
-    let mut running: Comp = Comp::nre(1.0);
+    let mut total: Comp = comp::ZERO;
+    let mut running: Comp = comp::ONE;
     for time in 1..8 {
         total += running;
         running *= x / Comp::nre(time as f64);
     }
     total
 }
+fn raw_ln(x: Comp) -> Comp {
+    let centered: Comp = x - comp::ONE;
+    let mut total: Comp = comp::ZERO;
+    let mut running: Comp = centered;
+    for time in 1..16 {
+        total += running / Comp::nre(time as f64);
+        running *= -centered;
+    }
+    total
+}
+fn raw_sin(x: Comp) -> Comp {
+    let mut total: Comp = comp::ZERO;
+    let mut running: Comp = x;
+    for time in 1..8 {
+        println!("{total}");
+        total += running;
+        running *= -x*x * Comp::nre(1.0 / (2*time * (2*time+1)) as f64);
+    }
+    total
+}
+fn raw_cos(x: Comp) -> Comp {
+    let mut total: Comp = comp::ZERO;
+    let mut running: Comp = comp::ONE;
+    for time in 1..8 {
+        total += running;
+        running *= -x*x * Comp::nre(1.0 / (2*time * (2*time-1)) as f64);
+    }
+    total
+}
+
 fn exp_real_rf(r: f64) -> (f64, bool, f64) {
     let e: f64 = 2.7182818284;
     let mut neg: bool = false;
@@ -34,26 +65,7 @@ fn exp_imag_rf(i: f64) -> (f64, bool) {
     else if i < -pi { return (out + pi, true) }
     (out, false)
 }
-fn raw_sin(x: Comp) -> Comp {
-    let mut total: Comp = Comp::nre(0.0);
-    let mut running: Comp = x;
-    for time in 1..8 {
-        println!("{total}");
-        total += running;
-        running *= -x*x * Comp::nre(1.0 / (2*time * (2*time+1)) as f64);
-    }
-    total
-}
-fn raw_cos(x: Comp) -> Comp {
-    let mut total: Comp = Comp::nre(0.0);
-    let mut running: Comp = Comp::nre(1.0);
-    for time in 1..8 {
-        total += running;
-        running *= -x*x * Comp::nre(1.0 / (2*time * (2*time-1)) as f64);
-    }
-    total
-}
-pub fn anglefix(r: f64) -> (f64, (bool, bool, bool, bool)) {
+fn anglefix(r: f64) -> (f64, (bool, bool, bool, bool)) {
     let pi: f64 = 3.1415926535;
     let mut ang: f64 = r;
     let mut transform: (bool,bool, bool, bool) = (false, false, false, false);
@@ -64,6 +76,27 @@ pub fn anglefix(r: f64) -> (f64, (bool, bool, bool, bool)) {
     if ang >= 0.25*pi { transform.3 = true; ang = 0.5*pi - ang }
     (ang, transform)
 }
+fn ln_mag_rf(mag: f64) -> (f64, bool, f64) {
+    let e: f64 = 2.7182818284;
+    let mut out: f64 = mag;
+    let mut extra: f64 = 0.0;
+    let mut neg: bool = false;
+    if out > 1.0 { out = 1.0 / out; neg = true; }
+    while out < 0.6 { out *= e; extra += 1.0; }
+    (out, neg, extra)
+}
+fn ln_ang_rf(unit: Comp) -> (Comp, f64) {
+    let pi: f64 = 3.1415926535;
+    let (r, i, extra): (f64, f64, f64) =
+    if unit.r.abs() > unit.i.abs() { 
+        if unit.r < 0.0 { (-unit.r, -unit.i, pi) }
+        else { (unit.r, unit.i, 0.0) }
+    } else {
+        if unit.i < 0.0 { (-unit.i, unit.r, -0.5*pi) }
+        else { (unit.i, -unit.r, 0.5*pi) }
+    };
+    ( Comp { r, i }, extra)
+}
 
 pub fn exp(x: Comp) -> Comp {
     let (r, rneg, extra): (f64, bool, f64) = exp_real_rf(x.r);
@@ -73,6 +106,14 @@ pub fn exp(x: Comp) -> Comp {
     if rneg { out = out.inv(); }
     if ineg { out = -out; }
     out
+}
+pub fn ln(x: Comp) -> Comp {
+    let mag: f64 = x.mag();
+    let unit: Comp = x / Comp::nre(mag);
+    let (mag_fix, neg, ex_r) = ln_mag_rf(mag);
+    let (ang_fix, ex_i) = ln_ang_rf(unit);
+    if neg { -raw_ln(Comp::nre(mag_fix)) + raw_ln(ang_fix) + Comp::new(ex_r, ex_i) }
+    else { raw_ln(Comp::nre(mag_fix)) + raw_ln(ang_fix) + Comp::new(-ex_r, ex_i) }
 }
 pub fn sin(x: Comp) -> Comp {
     let (r, fix): (f64, (bool, bool, bool, bool)) = anglefix(x.r);
@@ -88,7 +129,7 @@ pub fn cos(x: Comp) -> Comp {
     if fix.2 { out = -out }
     out
 }
-
+ 
 pub static PRE_VAR: [([char; 5], Comp); 3] = [
     (['π', ' ', ' ', ' ', ' '], Comp { r: 3.1415926535, i: 0.0 }),
     (['τ', ' ', ' ', ' ', ' '], Comp { r: 6.283185307, i: 0.0 }),

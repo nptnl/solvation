@@ -113,6 +113,7 @@ fn encode_one(word: String, depth: &mut u16,
         "exp" => return Bat::Builtin(BasicFn::Exp),
         "sin" => return Bat::Builtin(BasicFn::Sin),
         "cos" => return Bat::Builtin(BasicFn::Cos),
+        "ln" => return Bat::Builtin(BasicFn::Ln),
         _ => (),
     };
     if word.chars().nth(0).unwrap() == '#' {
@@ -210,10 +211,12 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
     for expression in split {
         inputs.push(order_operations(expression))
     }
+    let go_fn: Comp = inputs[0].extract_val();
     let replace: Comp = match current[start-1].extract_basic() {
-        BasicFn::Exp => preset::exp(inputs[0].extract_val()),
-        BasicFn::Sin => preset::sin(inputs[0].extract_val()),
-        BasicFn::Cos => preset::cos(inputs[0].extract_val()),
+        BasicFn::Exp => preset::exp(go_fn),
+        BasicFn::Sin => preset::sin(go_fn),
+        BasicFn::Cos => preset::cos(go_fn),
+        BasicFn::Ln => preset::ln(go_fn),
     };
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(replace));

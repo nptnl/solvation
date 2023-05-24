@@ -25,8 +25,13 @@ impl Comp {
             i: -self.i * divisor
         }
     }
+    pub fn mag_square(self) -> f64 {
+        self.r * self.r + self.i * self.i
+    }
+    pub fn mag(self) -> f64 {
+        real_sqrt(self.r * self.r + self.i * self.i)
+    }
 }
-
 impl ops::Neg for Comp {
     type Output = Self;
     fn neg(self) -> Self {
@@ -129,3 +134,13 @@ impl std::fmt::Display for Comp {
 pub static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
 pub static ONE: Comp = Comp { r: 1.0, i: 0.0 };
 pub static II: Comp = Comp { r: 0.0, i: 1.0 };
+
+
+fn real_sqrt(x: f64) -> f64 {
+    let (mut t1, mut t2): (f64, f64) = (2.0, 1.0);
+    while (t2 - t1).abs() > 0.0001 {
+        t1 = t2;
+        t2 -= (t2*t2 - x) / (2.0*t2);
+    }
+    t2
+}

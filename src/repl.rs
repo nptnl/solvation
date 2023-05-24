@@ -72,6 +72,7 @@ pub(crate) enum BinOp {
     Sub,
     Mul,
     Div,
+    Pow,
 }
 
 fn take_input() -> String {
@@ -110,6 +111,7 @@ fn encode_one(word: String, depth: &mut u16,
         "-" => return Bat::Rel(BinOp::Sub),
         "*" | "×" | "·" => return Bat::Rel(BinOp::Mul),
         "/" | "÷" => return Bat::Rel(BinOp::Div),
+        "^" => return Bat::Rel(BinOp::Pow),
         "exp" => return Bat::Builtin(BasicFn::Exp),
         "sin" => return Bat::Builtin(BasicFn::Sin),
         "cos" => return Bat::Builtin(BasicFn::Cos),
@@ -148,6 +150,7 @@ fn binary_operate(operation: BinOp, first: Comp, last: Comp) -> Comp {
         BinOp::Sub => first - last,
         BinOp::Mul => first * last,
         BinOp::Div => first / last,
+        BinOp::Pow => first.pow(last),
     }
 }
 fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
@@ -225,6 +228,12 @@ fn order_operations(simple: Vec<Bat>) -> Bat {
     let mut shrinking: Vec<Bat> = simple.clone();
     let mut maybe: Option<usize>;
     loop {
+        maybe = shrinking.clone().iter().position(|&x|
+            x == Bat::Rel(BinOp::Pow));
+        match maybe {
+            Some(indx) => { bin_replace(&mut shrinking, indx); continue },
+            None => (),
+        }
         maybe = shrinking.clone().iter().position(|&x|
         x == Bat::Rel(BinOp::Div) || x == Bat::Rel(BinOp::Mul));
         match maybe {

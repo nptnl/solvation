@@ -112,8 +112,8 @@ pub fn ln(x: Comp) -> Comp {
     let unit: Comp = x / Comp::nre(mag);
     let (mag_fix, neg, ex_r) = ln_mag_rf(mag);
     let (ang_fix, ex_i) = ln_ang_rf(unit);
-    if neg { -raw_ln(Comp::nre(mag_fix)) + raw_ln(ang_fix) + Comp::new(ex_r, ex_i) }
-    else { raw_ln(Comp::nre(mag_fix)) + raw_ln(ang_fix) + Comp::new(-ex_r, ex_i) }
+    if neg {raw_ln(ang_fix / Comp::nre(mag_fix)) + Comp::new(ex_r, ex_i) }
+    else { raw_ln(ang_fix * Comp::nre(mag_fix)) + Comp::new(-ex_r, ex_i) }
 }
 pub fn sin(x: Comp) -> Comp {
     let (r, fix): (f64, (bool, bool, bool, bool)) = anglefix(x.r);

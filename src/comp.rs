@@ -1,4 +1,5 @@
 use std::ops;
+use crate::preset::{exp, ln};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Comp {
@@ -30,6 +31,9 @@ impl Comp {
     }
     pub fn mag(self) -> f64 {
         real_sqrt(self.r * self.r + self.i * self.i)
+    }
+    pub fn pow(self, other: Self) -> Self {
+        exp( ln(self) * other )
     }
 }
 impl ops::Neg for Comp {

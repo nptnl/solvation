@@ -135,16 +135,20 @@ impl std::fmt::Display for Comp {
     }
 }
 
-pub static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
-pub static ONE: Comp = Comp { r: 1.0, i: 0.0 };
-pub static II: Comp = Comp { r: 0.0, i: 1.0 };
 
-
-fn real_sqrt(x: f64) -> f64 {
+pub(crate) fn real_sqrt(x: f64) -> f64 {
     let (mut t1, mut t2): (f64, f64) = (2.0, 1.0);
     while (t2 - t1).abs() > 0.0001 {
         t1 = t2;
         t2 -= (t2*t2 - x) / (2.0*t2);
+    }
+    t2
+}
+pub(crate) fn comp_sqrt(x: Comp) -> Comp {
+    let (mut t1, mut t2): (Comp, Comp) = (Comp::new(2.0, 1.0), Comp::new(1.0, 1.0));
+    while (t2 - t1).mag_square() > 0.0001 {
+        t1 = t2;
+        t2 -= (t2*t2 - x) / (Comp::nre(2.0)*t2);
     }
     t2
 }

@@ -19,8 +19,9 @@ pub fn repl() {
 
         match chain[0].as_str() {
             "var" => {
-                variables.insert( get_five(chain[1].as_str().to_string()),
-                Bat::Val(complete(tokenize(chain[2..].to_vec(), &variables, &functions), &functions)) );
+                ans = complete(tokenize(chain[2..].to_vec(), &variables, &functions), &functions);
+                variables.insert( ['a', 'n', 's', ' ', ' '], Bat::Val(ans) );
+                variables.insert( get_five(chain[1].as_str().to_string()), Bat::Val(ans) );
             },
             "def" => {
                 functions.insert( get_five(chain[1].as_str().to_string()),
@@ -116,6 +117,8 @@ fn encode_one(word: String, depth: &mut u16,
         "sin" => return Bat::Builtin(BasicFn::Sin),
         "cos" => return Bat::Builtin(BasicFn::Cos),
         "ln" => return Bat::Builtin(BasicFn::Ln),
+        "asin" => return Bat::Builtin(BasicFn::ASin),
+        "acos" => return Bat::Builtin(BasicFn::ACos),
         _ => (),
     };
     if word.chars().nth(0).unwrap() == '#' {
@@ -220,6 +223,8 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
         BasicFn::Sin => preset::sin(go_fn),
         BasicFn::Cos => preset::cos(go_fn),
         BasicFn::Ln => preset::ln(go_fn),
+        BasicFn::ASin => preset::asin(go_fn),
+        BasicFn::ACos => preset::acos(go_fn),
     };
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(replace));

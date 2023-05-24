@@ -1,5 +1,9 @@
 use crate::comp;
-use crate::comp::Comp;
+use crate::comp::{Comp, comp_sqrt};
+
+static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
+static ONE: Comp = Comp { r: 1.0, i: 0.0 };
+static PI: f64 = 3.1415926535;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BasicFn {
@@ -7,11 +11,13 @@ pub enum BasicFn {
     Sin,
     Cos,
     Ln,
+    ASin,
+    ACos,
 }
 
 fn raw_exp(x: Comp) -> Comp {
-    let mut total: Comp = comp::ZERO;
-    let mut running: Comp = comp::ONE;
+    let mut total: Comp = ZERO;
+    let mut running: Comp = ONE;
     for time in 1..8 {
         total += running;
         running *= x / Comp::nre(time as f64);
@@ -19,8 +25,8 @@ fn raw_exp(x: Comp) -> Comp {
     total
 }
 fn raw_ln(x: Comp) -> Comp {
-    let centered: Comp = x - comp::ONE;
-    let mut total: Comp = comp::ZERO;
+    let centered: Comp = x - ONE;
+    let mut total: Comp = ZERO;
     let mut running: Comp = centered;
     for time in 1..16 {
         total += running / Comp::nre(time as f64);
@@ -29,18 +35,17 @@ fn raw_ln(x: Comp) -> Comp {
     total
 }
 fn raw_sin(x: Comp) -> Comp {
-    let mut total: Comp = comp::ZERO;
+    let mut total: Comp = ZERO;
     let mut running: Comp = x;
     for time in 1..8 {
-        println!("{total}");
         total += running;
         running *= -x*x * Comp::nre(1.0 / (2*time * (2*time+1)) as f64);
     }
     total
 }
 fn raw_cos(x: Comp) -> Comp {
-    let mut total: Comp = comp::ZERO;
-    let mut running: Comp = comp::ONE;
+    let mut total: Comp = ZERO;
+    let mut running: Comp = ONE;
     for time in 1..8 {
         total += running;
         running *= -x*x * Comp::nre(1.0 / (2*time * (2*time-1)) as f64);
@@ -58,22 +63,19 @@ fn exp_real_rf(r: f64) -> (f64, bool, f64) {
     (out, neg, extra)
 }
 fn exp_imag_rf(i: f64) -> (f64, bool) {
-    let pi: f64 = 3.1415926535;
-    let tau: f64 = 6.283185307;
-    let out: f64 = i % tau;
-    if i > pi { return (out - pi, true) }
-    else if i < -pi { return (out + pi, true) }
+    let out: f64 = i % 2.0*PI;
+    if i > PI { return (out - PI, true) }
+    else if i < -PI { return (out + PI, true) }
     (out, false)
 }
 fn anglefix(r: f64) -> (f64, (bool, bool, bool, bool)) {
-    let pi: f64 = 3.1415926535;
     let mut ang: f64 = r;
     let mut transform: (bool,bool, bool, bool) = (false, false, false, false);
     if ang < 0.0 { transform.0 = true; ang = -ang }
-    ang %= 2.0*pi;
-    if ang >= pi { transform.1 = true; ang = 2.0*pi - ang }
-    if ang >= 0.5*pi { transform.2 = true; ang = pi - ang }
-    if ang >= 0.25*pi { transform.3 = true; ang = 0.5*pi - ang }
+    ang %= 2.0*PI;
+    if ang >= PI { transform.1 = true; ang = 2.0*PI - ang }
+    if ang >= 0.5*PI { transform.2 = true; ang = PI - ang }
+    if ang >= 0.25*PI { transform.3 = true; ang = 0.5*PI - ang }
     (ang, transform)
 }
 fn ln_mag_rf(mag: f64) -> (f64, bool, f64) {
@@ -86,14 +88,13 @@ fn ln_mag_rf(mag: f64) -> (f64, bool, f64) {
     (out, neg, extra)
 }
 fn ln_ang_rf(unit: Comp) -> (Comp, f64) {
-    let pi: f64 = 3.1415926535;
     let (r, i, extra): (f64, f64, f64) =
     if unit.r.abs() > unit.i.abs() { 
-        if unit.r < 0.0 { (-unit.r, -unit.i, pi) }
+        if unit.r < 0.0 { (-unit.r, -unit.i, PI) }
         else { (unit.r, unit.i, 0.0) }
     } else {
-        if unit.i < 0.0 { (-unit.i, unit.r, -0.5*pi) }
-        else { (unit.i, -unit.r, 0.5*pi) }
+        if unit.i < 0.0 { (-unit.i, unit.r, -0.5*PI) }
+        else { (unit.i, -unit.r, 0.5*PI) }
     };
     ( Comp { r, i }, extra)
 }
@@ -129,7 +130,14 @@ pub fn cos(x: Comp) -> Comp {
     if fix.2 { out = -out }
     out
 }
- 
+
+pub fn asin(x: Comp) -> Comp {
+    Comp::nre(0.5*PI) + Comp::nim(-1.0) * ln(x - comp_sqrt(x*x - ONE))
+}
+pub fn acos(x: Comp) -> Comp {
+    Comp::nim(-1.0) * ln(x + comp_sqrt(x*x - ONE))
+}
+
 pub static PRE_VAR: [([char; 5], Comp); 3] = [
     (['π', ' ', ' ', ' ', ' '], Comp { r: 3.1415926535, i: 0.0 }),
     (['τ', ' ', ' ', ' ', ' '], Comp { r: 6.283185307, i: 0.0 }),

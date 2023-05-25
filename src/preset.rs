@@ -1,4 +1,3 @@
-use crate::comp;
 use crate::comp::{Comp, comp_sqrt};
 
 static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
@@ -7,12 +6,13 @@ static PI: f64 = 3.1415926535;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BasicFn {
-    Exp,
-    Sin,
-    Cos,
-    Ln,
-    ASin,
-    ACos,
+    Exponential,
+    Sine,
+    Cosine,
+    NaturalLog,
+    LogBase,
+    ArcSine,
+    ArcCosine,
 }
 
 fn raw_exp(x: Comp) -> Comp {
@@ -34,24 +34,6 @@ fn raw_ln(x: Comp) -> Comp {
     }
     total
 }
-fn raw_sin(x: Comp) -> Comp {
-    let mut total: Comp = ZERO;
-    let mut running: Comp = x;
-    for time in 1..8 {
-        total += running;
-        running *= -x*x * Comp::nre(1.0 / (2*time * (2*time+1)) as f64);
-    }
-    total
-}
-fn raw_cos(x: Comp) -> Comp {
-    let mut total: Comp = ZERO;
-    let mut running: Comp = ONE;
-    for time in 1..8 {
-        total += running;
-        running *= -x*x * Comp::nre(1.0 / (2*time * (2*time-1)) as f64);
-    }
-    total
-}
 
 fn exp_real_rf(r: f64) -> (f64, bool, f64) {
     let e: f64 = 2.7182818284;
@@ -63,20 +45,17 @@ fn exp_real_rf(r: f64) -> (f64, bool, f64) {
     (out, neg, extra)
 }
 fn exp_imag_rf(i: f64) -> (f64, bool) {
-    let out: f64 = i % 2.0*PI;
-    if i > PI { return (out - PI, true) }
-    else if i < -PI { return (out + PI, true) }
-    (out, false)
-}
-fn anglefix(r: f64) -> (f64, (bool, bool, bool, bool)) {
-    let mut ang: f64 = r;
-    let mut transform: (bool,bool, bool, bool) = (false, false, false, false);
-    if ang < 0.0 { transform.0 = true; ang = -ang }
-    ang %= 2.0*PI;
-    if ang >= PI { transform.1 = true; ang = 2.0*PI - ang }
-    if ang >= 0.5*PI { transform.2 = true; ang = PI - ang }
-    if ang >= 0.25*PI { transform.3 = true; ang = 0.5*PI - ang }
-    (ang, transform)
+    let mut out: f64 = i;
+    let mut realflip: bool = false;
+    out %= 2.0*PI;
+    println!("{}", out);
+    if out > PI { out -= 2.0*PI }
+    println!("{}", out);
+    if out <= -PI { out += 2.0*PI }
+    println!("{}", out);
+    if out > 0.5*PI || out < -0.5*PI { out = PI - out; realflip = true; }
+    println!("{}", out);
+    (out, realflip)
 }
 fn ln_mag_rf(mag: f64) -> (f64, bool, f64) {
     let e: f64 = 2.7182818284;
@@ -101,13 +80,14 @@ fn ln_ang_rf(unit: Comp) -> (Comp, f64) {
 
 pub fn exp(x: Comp) -> Comp {
     let (r, rneg, extra): (f64, bool, f64) = exp_real_rf(x.r);
-    let (i, ineg): (f64, bool) = exp_imag_rf(x.i);
+    let (i, rflip): (f64, bool) = exp_imag_rf(x.i);
     let mut out: Comp = raw_exp(Comp { r, i });
     out *= Comp::nre(extra);
-    if rneg { out = out.inv(); }
-    if ineg { out = -out; }
+    if rneg { out.r = 1.0 / out.r; }
+    if rflip { out.r = -out.r; }
     out
 }
+fn ixp(x: Comp) -> Comp { exp(Comp::nim(1.0) * x) }
 pub fn ln(x: Comp) -> Comp {
     let mag: f64 = x.mag();
     let unit: Comp = x / Comp::nre(mag);
@@ -116,19 +96,16 @@ pub fn ln(x: Comp) -> Comp {
     if neg {raw_ln(ang_fix / Comp::nre(mag_fix)) + Comp::new(ex_r, ex_i) }
     else { raw_ln(ang_fix * Comp::nre(mag_fix)) + Comp::new(-ex_r, ex_i) }
 }
+pub fn log(n: Comp, x: Comp) -> Comp {
+    ln(x) / ln(n)
+}
 pub fn sin(x: Comp) -> Comp {
-    let (r, fix): (f64, (bool, bool, bool, bool)) = anglefix(x.r);
-    let mut out: Comp =
-    if fix.3 { raw_cos(Comp { r, i: x.i } ) } else { raw_sin(Comp { r, i: x.i } ) };
-    if fix.1 { out = -out }
-    out
+    let series: Comp = ixp(x);
+    Comp::nim(-0.5) * (series - series.inv())
 }
 pub fn cos(x: Comp) -> Comp {
-    let (r, fix): (f64, (bool, bool, bool, bool)) = anglefix(x.r);
-    let mut out: Comp =
-    if fix.3 { raw_sin(Comp { r, i: x.i } ) } else { raw_sin(Comp { r, i: x.i } ) };
-    if fix.2 { out = -out }
-    out
+    let series: Comp = ixp(x);
+    Comp::nre(0.5) * (series + series.inv())
 }
 
 pub fn asin(x: Comp) -> Comp {
@@ -138,7 +115,7 @@ pub fn acos(x: Comp) -> Comp {
     Comp::nim(-1.0) * ln(x + comp_sqrt(x*x - ONE))
 }
 
-pub static PRE_VAR: [([char; 5], Comp); 3] = [
+pub(crate) static PRE_VAR: [([char; 5], Comp); 3] = [
     (['π', ' ', ' ', ' ', ' '], Comp { r: 3.1415926535, i: 0.0 }),
     (['τ', ' ', ' ', ' ', ' '], Comp { r: 6.283185307, i: 0.0 }),
     (['e', ' ', ' ', ' ', ' '], Comp { r: 2.7182818284, i: 0.0 }),

@@ -113,12 +113,13 @@ fn encode_one(word: String, depth: &mut u16,
         "*" | "×" | "·" => return Bat::Rel(BinOp::Mul),
         "/" | "÷" => return Bat::Rel(BinOp::Div),
         "^" => return Bat::Rel(BinOp::Pow),
-        "exp" => return Bat::Builtin(BasicFn::Exp),
-        "sin" => return Bat::Builtin(BasicFn::Sin),
-        "cos" => return Bat::Builtin(BasicFn::Cos),
-        "ln" => return Bat::Builtin(BasicFn::Ln),
-        "asin" => return Bat::Builtin(BasicFn::ASin),
-        "acos" => return Bat::Builtin(BasicFn::ACos),
+        "exp" => return Bat::Builtin(BasicFn::Exponential),
+        "sin" => return Bat::Builtin(BasicFn::Sine),
+        "cos" => return Bat::Builtin(BasicFn::Cosine),
+        "ln" => return Bat::Builtin(BasicFn::NaturalLog),
+        "log" => return Bat::Builtin(BasicFn::LogBase),
+        "asin" => return Bat::Builtin(BasicFn::ArcSine),
+        "acos" => return Bat::Builtin(BasicFn::ArcCosine),
         _ => (),
     };
     if word.chars().nth(0).unwrap() == '#' {
@@ -217,14 +218,15 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
     for expression in split {
         inputs.push(order_operations(expression))
     }
-    let go_fn: Comp = inputs[0].extract_val();
+    let first: Comp = inputs[0].extract_val();
     let replace: Comp = match current[start-1].extract_basic() {
-        BasicFn::Exp => preset::exp(go_fn),
-        BasicFn::Sin => preset::sin(go_fn),
-        BasicFn::Cos => preset::cos(go_fn),
-        BasicFn::Ln => preset::ln(go_fn),
-        BasicFn::ASin => preset::asin(go_fn),
-        BasicFn::ACos => preset::acos(go_fn),
+        BasicFn::Exponential => preset::exp(first),
+        BasicFn::Sine => preset::sin(first),
+        BasicFn::Cosine => preset::cos(first),
+        BasicFn::NaturalLog => preset::ln(first),
+        BasicFn::LogBase => preset::log(first, inputs[1].extract_val()),
+        BasicFn::ArcSine => preset::asin(first),
+        BasicFn::ArcCosine => preset::acos(first),
     };
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(replace));

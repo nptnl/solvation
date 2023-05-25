@@ -1,5 +1,6 @@
 use crate::comp::Comp;
 use crate::preset;
+use crate::trig;
 use crate::preset::BasicFn;
 use std::collections::HashMap;
 
@@ -105,6 +106,7 @@ fn encode_one(word: String, depth: &mut u16,
         Err(_) => (),
     };
     match word.as_str() {
+
         "," => return Bat::Comma,
         "(" => {*depth += 1; return Bat::Begin(*depth); },
         ")" => {*depth -= 1; return Bat::End(*depth+1); },
@@ -114,12 +116,19 @@ fn encode_one(word: String, depth: &mut u16,
         "/" | "÷" => return Bat::Rel(BinOp::Div),
         "^" => return Bat::Rel(BinOp::Pow),
         "exp" => return Bat::Builtin(BasicFn::Exponential),
-        "sin" => return Bat::Builtin(BasicFn::Sine),
-        "cos" => return Bat::Builtin(BasicFn::Cosine),
         "ln" => return Bat::Builtin(BasicFn::NaturalLog),
         "log" => return Bat::Builtin(BasicFn::LogBase),
+
+        "sin" => return Bat::Builtin(BasicFn::Sine),
+        "cos" => return Bat::Builtin(BasicFn::Cosine),
+        "tan" => return Bat::Builtin(BasicFn::Tangent),
+        "cot" => return Bat::Builtin(BasicFn::Cotangent),
+        "sec" => return Bat::Builtin(BasicFn::Secant),
+        "csc" => return Bat::Builtin(BasicFn::Cosecant),
+
         "asin" => return Bat::Builtin(BasicFn::ArcSine),
         "acos" => return Bat::Builtin(BasicFn::ArcCosine),
+
         _ => (),
     };
     if word.chars().nth(0).unwrap() == '#' {
@@ -220,13 +229,20 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
     }
     let first: Comp = inputs[0].extract_val();
     let replace: Comp = match current[start-1].extract_basic() {
+        
         BasicFn::Exponential => preset::exp(first),
-        BasicFn::Sine => preset::sin(first),
-        BasicFn::Cosine => preset::cos(first),
         BasicFn::NaturalLog => preset::ln(first),
         BasicFn::LogBase => preset::log(first, inputs[1].extract_val()),
-        BasicFn::ArcSine => preset::asin(first),
-        BasicFn::ArcCosine => preset::acos(first),
+
+        BasicFn::Sine => trig::sin(first),
+        BasicFn::Cosine => trig::cos(first),
+        BasicFn::Tangent => trig::tan(first),
+        BasicFn::Cotangent => trig::cot(first),
+        BasicFn::Secant => trig::sec(first),
+        BasicFn::Cosecant => trig::csc(first),
+    
+        BasicFn::ArcSine => trig::asin(first),
+        BasicFn::ArcCosine => trig::acos(first),
     };
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(replace));

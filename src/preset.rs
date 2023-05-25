@@ -1,4 +1,4 @@
-use crate::comp::{Comp, comp_sqrt};
+use crate::comp::Comp;
 
 static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
 static ONE: Comp = Comp { r: 1.0, i: 0.0 };
@@ -9,6 +9,10 @@ pub enum BasicFn {
     Exponential,
     Sine,
     Cosine,
+    Tangent,
+    Cotangent,
+    Secant,
+    Cosecant,
     NaturalLog,
     LogBase,
     ArcSine,
@@ -48,13 +52,9 @@ fn exp_imag_rf(i: f64) -> (f64, bool) {
     let mut out: f64 = i;
     let mut realflip: bool = false;
     out %= 2.0*PI;
-    println!("{}", out);
     if out > PI { out -= 2.0*PI }
-    println!("{}", out);
     if out <= -PI { out += 2.0*PI }
-    println!("{}", out);
     if out > 0.5*PI || out < -0.5*PI { out = PI - out; realflip = true; }
-    println!("{}", out);
     (out, realflip)
 }
 fn ln_mag_rf(mag: f64) -> (f64, bool, f64) {
@@ -87,7 +87,7 @@ pub fn exp(x: Comp) -> Comp {
     if rflip { out.r = -out.r; }
     out
 }
-fn ixp(x: Comp) -> Comp { exp(Comp::nim(1.0) * x) }
+pub fn ixp(x: Comp) -> Comp { exp(Comp::nim(1.0) * x) }
 pub fn ln(x: Comp) -> Comp {
     let mag: f64 = x.mag();
     let unit: Comp = x / Comp::nre(mag);
@@ -98,21 +98,6 @@ pub fn ln(x: Comp) -> Comp {
 }
 pub fn log(n: Comp, x: Comp) -> Comp {
     ln(x) / ln(n)
-}
-pub fn sin(x: Comp) -> Comp {
-    let series: Comp = ixp(x);
-    Comp::nim(-0.5) * (series - series.inv())
-}
-pub fn cos(x: Comp) -> Comp {
-    let series: Comp = ixp(x);
-    Comp::nre(0.5) * (series + series.inv())
-}
-
-pub fn asin(x: Comp) -> Comp {
-    Comp::nre(0.5*PI) + Comp::nim(-1.0) * ln(x - comp_sqrt(x*x - ONE))
-}
-pub fn acos(x: Comp) -> Comp {
-    Comp::nim(-1.0) * ln(x + comp_sqrt(x*x - ONE))
 }
 
 pub(crate) static PRE_VAR: [([char; 5], Comp); 3] = [

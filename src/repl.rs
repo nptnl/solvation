@@ -4,7 +4,7 @@ use crate::trig;
 use crate::preset::BasicFn;
 use std::collections::HashMap;
 
-pub fn repl() {
+pub fn roll() {
 
     let mut variables: HashMap<[char; 5], Bat> = HashMap::new();
     let mut functions: HashMap<[char; 5], (u16, Vec<Bat>)> = HashMap::new();
@@ -12,15 +12,14 @@ pub fn repl() {
     for var in preset::PRE_VAR {
         variables.insert(var.0, Bat::Val(var.1));
     }
+
     functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
-    // for def in preset::PRE_FUNC {
-    //     functions.insert(def.0, def.1);
-    // }
 
     let mut ans: Comp;
+    let mut chain: Vec<String>;
 
     loop {
-        let chain = split_input(take_input());
+        chain = split_input(take_input());
 
         match chain[0].as_str() {
             "var" => {
@@ -29,8 +28,12 @@ pub fn repl() {
                 variables.insert( get_five(chain[1].as_str().to_string()), Bat::Val(ans) );
             },
             "def" => {
+
+                let (finding, start): (Vec<(u16, String)>, usize) = get_inputs(chain.clone());
+                replace_inputs(&mut chain, &finding);
+
                 functions.insert( get_five(chain[1].as_str().to_string()),
-                ( chain[2].parse::<u16>().unwrap(), tokenize(chain[3..].to_vec(), &variables, &functions) ) );
+                ( finding.len() as u16, tokenize(chain[start..].to_vec(), &variables, &functions) ) );
             },
             _ => {
                 ans = complete(tokenize(chain, &variables, &functions), &functions).extract_val();
@@ -38,6 +41,32 @@ pub fn repl() {
                 println!("[Σ] {ans}");
             },
         };
+    }
+}
+
+fn get_inputs(chain: Vec<String>) -> (Vec<(u16, String)>, usize) {
+    let mut inputs: Vec<(u16, String)> = Vec::new();
+    let mut indx: usize = 2;
+    let mut previous: String = "(".to_string();
+    let mut current: &str;
+    let mut count: u16 = 0;
+    loop {
+        current = chain[indx].as_str();
+        match current {
+            ")" => { count += 1; inputs.push((count, previous)); indx += 1; break },
+            "," => { count += 1; inputs.push((count, previous)) },
+            _ => (),
+        }
+        indx += 1;
+        previous = current.to_string();
+    }
+    (inputs, indx)
+}
+fn replace_inputs(chain: &mut Vec<String>, inputs: &Vec<(u16, String)>) {
+    for word in chain {
+        for inp in inputs {
+            if word == &inp.1 { *word = format!("#{}", inp.0) }
+        }
     }
 }
 
@@ -317,3 +346,21 @@ fn complete(input: Vec<Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Ba
         }
     }
 }
+
+// #[derive(Debug, Copy, Clone, PartialEq)]
+// pub(crate) enum SpecialFn {
+//     LongSum,
+// }
+// fn evaluate(name: [char; 5], inp: Comp, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
+//     complete(
+//         [ Bat::Func(name), Bat::Begin(1), Bat::Val(inp), Bat::End(1) ].to_vec(),
+//         fnlist
+//     )
+// }
+// pub(crate) fn long_sum(name: [char; 5], lower: u16, upper: u16, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Comp {
+//     let mut total: Comp = Comp::nre(0.0);
+//     for term in lower..upper+1 {
+//         total += evaluate(name, Comp::nre(term as f64), fnlist).extract_val();
+//     }
+//     total
+// }

@@ -4,5 +4,5 @@ pub mod preset;
 pub mod trig;
 
 fn main() {
-    repl::repl();
+    repl::roll();
 }

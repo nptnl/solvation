@@ -122,6 +122,7 @@ pub(crate) static PRE_VAR: [([char; 5], Comp); 3] = [
 
 
 static DX: Comp = Comp { r: 0.00000000001, i: 0.0 };
+
 pub(crate) static LIMIT_DVT: [Bat; 15] = [
     Bat::Begin(1),
     Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::Rel(BinOp::Add), Bat::Val(DX), Bat::End(2),

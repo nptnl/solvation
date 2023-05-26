@@ -35,6 +35,10 @@ impl Comp {
     pub fn pow(self, other: Self) -> Self {
         exp( ln(self) * other )
     }
+    pub fn to_natural(self) -> u16 {
+    if self.r < 0.0 { -self.r as u16 }
+    else { self.r as u16 }
+    }
 }
 impl ops::Neg for Comp {
     type Output = Self;

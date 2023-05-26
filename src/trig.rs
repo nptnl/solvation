@@ -21,13 +21,13 @@ pub fn cot(x: Comp) -> Comp {
     let series: Comp = ixp(x);
     Comp::nim(1.0) * (series + series.inv()) / (series - series.inv())
 }
-pub fn csc(x: Comp) -> Comp {
-    let series: Comp = ixp(x);
-    Comp::nim(2.0) / (series - series.inv())
-}
 pub fn sec(x: Comp) -> Comp {
     let series: Comp = ixp(x);
     Comp::nre(2.0)  / (series + series.inv())
+}
+pub fn csc(x: Comp) -> Comp {
+    let series: Comp = ixp(x);
+    Comp::nim(2.0) / (series - series.inv())
 }
 
 
@@ -45,3 +45,28 @@ pub fn acot(x: Comp) -> Comp {
 }
 pub fn acsc(x: Comp) -> Comp { asin(x.inv()) }
 pub fn asec(x: Comp) -> Comp { acos(x.inv()) }
+
+pub fn sinh(x: Comp) -> Comp {
+    let series: Comp = exp(x);
+    Comp::nre(0.5) * (series - series.inv())
+}
+pub fn cosh(x: Comp) -> Comp {
+    let series: Comp = exp(x);
+    Comp::nre(0.5) * (series + series.inv())
+}
+pub fn tanh(x: Comp) -> Comp {
+    let series: Comp = exp(x);
+    (series - series.inv()) / (series + series.inv())
+}
+pub fn coth(x: Comp) -> Comp {
+    let series: Comp = exp(x);
+    (series + series.inv()) / (series -  series.inv())
+}
+pub fn sech(x: Comp) -> Comp {
+    let series: Comp = exp(x);
+    Comp::nre(2.0) / (series + series.inv())
+}
+pub fn csch(x: Comp) -> Comp {
+    let series: Comp = exp(x);
+    Comp::nre(2.0) / (series - series.inv())
+}

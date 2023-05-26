@@ -1,4 +1,5 @@
 use crate::comp::Comp;
+use crate::repl::{Bat, BinOp};
 
 static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
 static ONE: Comp = Comp { r: 1.0, i: 0.0 };
@@ -6,17 +7,31 @@ static PI: f64 = 3.1415926535;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BasicFn {
+
     Exponential,
+    NaturalLog,
+    LogBase,
+
     Sine,
     Cosine,
     Tangent,
     Cotangent,
     Secant,
     Cosecant,
-    NaturalLog,
-    LogBase,
+
     ArcSine,
     ArcCosine,
+    ArcTangent,
+    ArcCotangent,
+    ArcSecant,
+    ArcCosecant,
+
+    HypSine,
+    HypCosine,
+    HypTangent,
+    HypCotangent,
+    HypSecant,
+    HypCosecant,
 }
 
 fn raw_exp(x: Comp) -> Comp {
@@ -38,7 +53,6 @@ fn raw_ln(x: Comp) -> Comp {
     }
     total
 }
-
 fn exp_real_rf(r: f64) -> (f64, bool, f64) {
     let e: f64 = 2.7182818284;
     let mut neg: bool = false;
@@ -99,9 +113,20 @@ pub fn ln(x: Comp) -> Comp {
 pub fn log(n: Comp, x: Comp) -> Comp {
     ln(x) / ln(n)
 }
-
+    
 pub(crate) static PRE_VAR: [([char; 5], Comp); 3] = [
     (['π', ' ', ' ', ' ', ' '], Comp { r: 3.1415926535, i: 0.0 }),
     (['τ', ' ', ' ', ' ', ' '], Comp { r: 6.283185307, i: 0.0 }),
     (['e', ' ', ' ', ' ', ' '], Comp { r: 2.7182818284, i: 0.0 }),
+];
+
+
+static DX: Comp = Comp { r: 0.00000000001, i: 0.0 };
+pub(crate) static LIMIT_DVT: [Bat; 15] = [
+    Bat::Begin(1),
+    Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::Rel(BinOp::Add), Bat::Val(DX), Bat::End(2),
+    Bat::Rel(BinOp::Sub),
+    Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::End(2),
+    Bat::End(1),
+    Bat::Rel(BinOp::Div), Bat::Val(DX),
 ];

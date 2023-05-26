@@ -12,6 +12,10 @@ pub fn repl() {
     for var in preset::PRE_VAR {
         variables.insert(var.0, Bat::Val(var.1));
     }
+    functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
+    // for def in preset::PRE_FUNC {
+    //     functions.insert(def.0, def.1);
+    // }
 
     let mut ans: Comp;
 
@@ -20,7 +24,7 @@ pub fn repl() {
 
         match chain[0].as_str() {
             "var" => {
-                ans = complete(tokenize(chain[2..].to_vec(), &variables, &functions), &functions);
+                ans = complete(tokenize(chain[2..].to_vec(), &variables, &functions), &functions).extract_val();
                 variables.insert( ['a', 'n', 's', ' ', ' '], Bat::Val(ans) );
                 variables.insert( get_five(chain[1].as_str().to_string()), Bat::Val(ans) );
             },
@@ -29,7 +33,7 @@ pub fn repl() {
                 ( chain[2].parse::<u16>().unwrap(), tokenize(chain[3..].to_vec(), &variables, &functions) ) );
             },
             _ => {
-                ans = complete(tokenize(chain, &variables, &functions), &functions);
+                ans = complete(tokenize(chain, &variables, &functions), &functions).extract_val();
                 variables.insert( ['a', 'n', 's', ' ', ' '], Bat::Val(ans) );
                 println!("[Σ] {ans}");
             },
@@ -99,8 +103,8 @@ pub(crate) fn get_five(word: String) -> [char; 5] {
     }
     out
 }
-fn encode_one(word: String, depth: &mut u16,
-    varlist: &HashMap<[char; 5], Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
+fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Bat>,
+    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
     match word.parse::<Comp>() {
         Ok(v) => return Bat::Val(v),
         Err(_) => (),
@@ -115,6 +119,7 @@ fn encode_one(word: String, depth: &mut u16,
         "*" | "×" | "·" => return Bat::Rel(BinOp::Mul),
         "/" | "÷" => return Bat::Rel(BinOp::Div),
         "^" => return Bat::Rel(BinOp::Pow),
+
         "exp" => return Bat::Builtin(BasicFn::Exponential),
         "ln" => return Bat::Builtin(BasicFn::NaturalLog),
         "log" => return Bat::Builtin(BasicFn::LogBase),
@@ -128,6 +133,17 @@ fn encode_one(word: String, depth: &mut u16,
 
         "asin" => return Bat::Builtin(BasicFn::ArcSine),
         "acos" => return Bat::Builtin(BasicFn::ArcCosine),
+        "atan" => return Bat::Builtin(BasicFn::ArcTangent),
+        "acot" => return Bat::Builtin(BasicFn::ArcCotangent),
+        "asec" => return Bat::Builtin(BasicFn::ArcSecant),
+        "acsc" => return Bat::Builtin(BasicFn::ArcCosecant),
+
+        "sinh" => return Bat::Builtin(BasicFn::HypSine),
+        "cosh" => return Bat::Builtin(BasicFn::HypCosine),
+        "tanh" => return Bat::Builtin(BasicFn::HypTangent),
+        "coth" => return Bat::Builtin(BasicFn::HypCotangent),
+        "sech" => return Bat::Builtin(BasicFn::HypSecant),
+        "csch" => return Bat::Builtin(BasicFn::HypCosecant),
 
         _ => (),
     };
@@ -207,7 +223,7 @@ fn func_replace(current: &mut Vec<Bat>, start: usize, end: usize,
     .map(|x| x.to_vec()).collect();
     let mut inputs: Vec<Bat> = Vec::new();
     for expression in split {
-        inputs.push(Bat::Val(complete(expression, fnlist)))
+        inputs.push(complete(expression, fnlist));
     }
     let function: &(u16, Vec<Bat>) = fnlist.get(&name).unwrap();
     let mut working: Vec<Bat> = Vec::new();
@@ -218,7 +234,7 @@ fn func_replace(current: &mut Vec<Bat>, start: usize, end: usize,
         }
     }
     current.drain(start-1..end+1);
-    current.insert(start-1, Bat::Val(complete(working, fnlist)));
+    current.insert(start-1, complete(working, fnlist));
 }
 fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
     let split: Vec<Vec<Bat>> = current[start+1..end].split(|&x| x == Bat::Comma)
@@ -229,7 +245,7 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
     }
     let first: Comp = inputs[0].extract_val();
     let replace: Comp = match current[start-1].extract_basic() {
-        
+
         BasicFn::Exponential => preset::exp(first),
         BasicFn::NaturalLog => preset::ln(first),
         BasicFn::LogBase => preset::log(first, inputs[1].extract_val()),
@@ -243,6 +259,18 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize) {
     
         BasicFn::ArcSine => trig::asin(first),
         BasicFn::ArcCosine => trig::acos(first),
+        BasicFn::ArcTangent => trig::atan(first),
+        BasicFn::ArcCotangent => trig::acot(first),
+        BasicFn::ArcSecant => trig::asec(first),
+        BasicFn::ArcCosecant => trig::acsc(first),
+
+        BasicFn::HypSine => trig::sinh(first),
+        BasicFn::HypCosine => trig::cosh(first),
+        BasicFn::HypTangent => trig::tanh(first),
+        BasicFn::HypCotangent => trig::coth(first),
+        BasicFn::HypSecant => trig::sech(first),
+        BasicFn::HypCosecant => trig::csch(first),
+
     };
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(replace));
@@ -272,11 +300,11 @@ fn order_operations(simple: Vec<Bat>) -> Bat {
         return shrinking[0];
     }
 }
-fn complete(input: Vec<Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Comp {
+fn complete(input: Vec<Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
     let mut shrinking: Vec<Bat> = input;
     loop {
         match find_deepest(shrinking.clone()) {
-            None => return order_operations(shrinking).extract_val(),
+            None => return order_operations(shrinking),
             Some((s,f)) => {
                 if s == 0 { paren_replace(&mut shrinking, s, f); continue };
                 match shrinking[s-1] {

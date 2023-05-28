@@ -1,8 +1,8 @@
-<img src="./sigma.png">
+<img src="./doc/sigma.png">
 
 <br/><br/>
 
-<img src="./Solvation.png">
+<img src="./doc/Solvation.png">
 
 <br/><br/>
 
@@ -15,6 +15,8 @@ As always, I'm not using libraries or any of that. Everything here is homemade :
 If you have Rust installed and you can build from the source code, good for you.
 
 If you don't just take the *L* for now and I'll have a binary release at some point.
+
+math is explained in [./doc/how-to-math.pdf](./doc/how-to-math.pdf)
 
 **basic syntax:**
 

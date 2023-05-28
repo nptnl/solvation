@@ -1,0 +1,72 @@
+\documentclass[10pt]{article}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathunicode}
+
+\title{how to math}
+\author{nptnl}
+
+\begin{document}
+
+\maketitle
+
+\section{The exponential function}
+
+The exponential function $\exp(x) = e^x$ is the foundation of the exponentiation operator and all trigonometric functions.
+
+\subsection{Maclaurin polynomial optimization}
+
+The exponential function $\exp(x)$ is defined with a very specific property, that it is its own derivative function. This means $\exp(x)$ is also its own second derivative, third, and is indeed equal to all orders of its own derivatives. Hence, its Maclaurin polynomial simply becomes:
+
+\[
+    e^x = \exp(x) = ∑_{n=0}^∞ \frac{x^n}{n!} = \frac{x^0}{0!} + \frac{x^1}{1!} + \frac{x^2}{2!} + \frac{x^3}{3!} ...
+\]
+
+To make for a simpler and faster $\exp(x)$ function, notice that each term is equal to the previous term, multiplied by $x$ and divided by the next $n$.
+
+\begin{align*}
+    1 · \frac{x}{1} &= x \\
+    x · \frac{x}{2} &= \frac{x^2}{2} \\
+    \frac{x^2}{2} · \frac{x}{3} &= \frac{x}{6} ... \\
+\end{align*}
+
+This means a `running' variable can be used along with a `total' variable to more easily create each term in a sequence, adding to `total' each time.
+
+\subsection{Range-fixing}
+
+This Maclaurin polynomial will only accurately describe $\exp(x)$ for a small range of inputs, especially if we limit the terms used to a smaller number (Solvation uses seven terms). In order to `fix' our inputs, and only use numbers inside a small radius of 0 as inputs to the polynomial approximation, a variety of exponential properties can be used. Firstly, the real and imaginary parts of the input can be split like this, such that we only need to deal with the real and imaginary parts independently:
+
+\[
+    \exp(a+bi) = \exp(a) · \exp(bi)
+\]
+
+The negative side of the Maclaurin series on $ℝ$ is considerably less accurate than the positive side, so negative values can be converted to positive ones like this:
+
+\[
+    \exp(a) = \frac{1}{\exp(-a)}
+\]
+
+Next, for real parts too large for a good approximation, the input can be divided by $e$ repeatedly until it falls within a small radius of 0.
+
+\[
+    \exp(a) = \exp(a · e^{-1}) + 1
+    = \exp(a · e^{-2}) + 2 ...
+    = \exp(a · e^{-n}) + n
+\]
+
+Now that the real part is range-fixed, only the imaginary part remains. Becuase the function $e^{bi}$ repeats itself every $2π$, $b$ can be reduced to a value $-π < b ≤ π$ using the mod operator:
+
+\[
+    \exp(bi) = \exp(bi ± 2πi)
+\]
+
+Next, replacing the input $bi$ with $\frac{π}{2} - bi$ has the effect of negating only the real part of the output (again, because the output follows the unit circle).
+
+\begin{align*}
+    \exp(bi) &= -\Re(\exp(π - bi)) + \Im(\exp(π - bi)) \\
+    \exp(bi) &= -\Re(\exp(-π - bi)) + \Im(\exp(-π - bi)) \\
+\end{align*}
+
+Applying this for $b$-values $>\frac{π}{2}$ or $<-\frac{π}{2}$ limits our range to $-\frac{π}{2} < b < \frac{π}{2}$. Now that both the real and imaginary parts have been range-fixed, the Maclaurin polynomial can be used to calculate $\exp(a+bi)$, provided that our code remembers the ways in which is must transform the output.
+
+\end{document}

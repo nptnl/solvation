@@ -67,8 +67,9 @@ fn exp_imag_rf(i: f64) -> (f64, bool) {
     let mut realflip: bool = false;
     out %= 2.0*PI;
     if out > PI { out -= 2.0*PI }
-    if out <= -PI { out += 2.0*PI }
-    if out > 0.5*PI || out < -0.5*PI { out = PI - out; realflip = true; }
+    else if out <= -PI { out += 2.0*PI }
+    if out > 0.5*PI { out = PI - out; realflip = true; }
+    else if out < -0.5*PI { out = -PI - out; realflip = true; }
     (out, realflip)
 }
 fn ln_mag_rf(mag: f64) -> (f64, bool, f64) {

@@ -79,3 +79,15 @@ mag(1,2)
 mag(1,1)
 1.4142134378915125
 ```
+
+**iterators:**
+
+To iterate a calculation, use keyword `iter`, followed by the number of iterations, followed by the calculations to execute. This should probably include a re-assignment...
+
+```
+var x 0
+iter 4 x = x + 1
+[Σ] 4
+x
+[Σ] 4
+```

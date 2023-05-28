@@ -28,13 +28,24 @@ pub fn roll() {
                 variables.insert( get_five(chain[1].as_str().to_string()), ans );
             },
             "def" => {
-
                 let (finding, start): (Vec<(u16, String)>, usize) = get_inputs(chain.clone());
                 replace_inputs(&mut chain, &finding);
 
                 functions.insert( get_five(chain[1].as_str().to_string()),
                 ( finding.len() as u16, tokenize(chain[start..].to_vec(), &variables, &functions) ) );
             },
+            "iter" => {
+                let times: u16 = match chain[1].parse::<u16>() {
+                    Ok(v) => v, Err(_) => 1,
+                };
+                let mut expr: Vec<Bat>;
+                let mut ans: Comp = Comp { r: 0.0, i: 0.0 };
+                for _ in 0..times {
+                    expr = tokenize(chain[2..].to_vec(), &variables, &functions);
+                    ans = complete(expr, &mut variables, &functions).extract_val();
+                }
+                println!("[Σ] {ans}");
+            }
             _ => {
                 ans = complete(tokenize(chain, &variables, &functions), &mut variables, &functions).extract_val();
                 variables.insert( ['a', 'n', 's', ' ', ' '], ans );

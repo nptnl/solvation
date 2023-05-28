@@ -139,7 +139,6 @@ impl std::fmt::Display for Comp {
     }
 }
 
-
 pub(crate) fn real_sqrt(x: f64) -> f64 {
     let (mut t1, mut t2): (f64, f64) = (2.0, 1.0);
     while (t2 - t1).abs() > 0.0001 {

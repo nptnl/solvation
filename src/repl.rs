@@ -6,11 +6,11 @@ use std::collections::HashMap;
 
 pub fn roll() {
 
-    let mut variables: HashMap<[char; 5], Bat> = HashMap::new();
+    let mut variables: HashMap<[char; 5], Comp> = HashMap::new();
     let mut functions: HashMap<[char; 5], (u16, Vec<Bat>)> = HashMap::new();
 
     for var in preset::PRE_VAR {
-        variables.insert(var.0, Bat::Val(var.1));
+        variables.insert(var.0, var.1);
     }
 
     functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
@@ -24,8 +24,8 @@ pub fn roll() {
         match chain[0].as_str() {
             "var" => {
                 ans = complete(tokenize(chain[2..].to_vec(), &variables, &functions), &functions).extract_val();
-                variables.insert( ['a', 'n', 's', ' ', ' '], Bat::Val(ans) );
-                variables.insert( get_five(chain[1].as_str().to_string()), Bat::Val(ans) );
+                variables.insert( ['a', 'n', 's', ' ', ' '], ans );
+                variables.insert( get_five(chain[1].as_str().to_string()), ans );
             },
             "def" => {
 
@@ -37,7 +37,7 @@ pub fn roll() {
             },
             _ => {
                 ans = complete(tokenize(chain, &variables, &functions), &functions).extract_val();
-                variables.insert( ['a', 'n', 's', ' ', ' '], Bat::Val(ans) );
+                variables.insert( ['a', 'n', 's', ' ', ' '], ans );
                 println!("[Σ] {ans}");
             },
         };
@@ -77,6 +77,7 @@ pub(crate) enum Bat {
     Begin(u16),
     End(u16),
     Comma,
+    Var([char; 5], Comp),
     Func([char; 5]),
     Inp(u16),
     Builtin(BasicFn),
@@ -85,6 +86,7 @@ impl Bat {
     fn extract_val(self) -> Comp {
         match self {
             Self::Val(v) => v,
+            Self::Var(_, v) => v,
             e => panic!("attempted to extract Val from non-value {:?}", e),
         }
     }
@@ -132,7 +134,7 @@ pub(crate) fn get_five(word: String) -> [char; 5] {
     }
     out
 }
-fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Bat>,
+fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Comp>,
     fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
     match word.parse::<Comp>() {
         Ok(v) => return Bat::Val(v),
@@ -184,7 +186,7 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Bat>,
     } 
     let name: [char; 5] = get_five(word.clone());
     match varlist.get(&name) {
-        Some(v) => return *v,
+        Some(v) => return Bat::Var(name, *v),
         None => (),
     }
     match fnlist.get(&name) {
@@ -193,7 +195,7 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Bat>,
     }
     panic!("goofball got an invalid token {}", word) // for no matches
 }
-fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Vec<Bat> {
+fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Vec<Bat> {
     let mut depth: u16 = 0;
     let mut processed: Vec<Bat> = Vec::new();
     for word in chain {
@@ -346,21 +348,3 @@ fn complete(input: Vec<Bat>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Ba
         }
     }
 }
-
-// #[derive(Debug, Copy, Clone, PartialEq)]
-// pub(crate) enum SpecialFn {
-//     LongSum,
-// }
-// fn evaluate(name: [char; 5], inp: Comp, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
-//     complete(
-//         [ Bat::Func(name), Bat::Begin(1), Bat::Val(inp), Bat::End(1) ].to_vec(),
-//         fnlist
-//     )
-// }
-// pub(crate) fn long_sum(name: [char; 5], lower: u16, upper: u16, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Comp {
-//     let mut total: Comp = Comp::nre(0.0);
-//     for term in lower..upper+1 {
-//         total += evaluate(name, Comp::nre(term as f64), fnlist).extract_val();
-//     }
-//     total
-// }

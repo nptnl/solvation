@@ -12,9 +12,7 @@ As always, I'm not using libraries or any of that. Everything here is homemade :
 
 # **how to use**
 
-If you have Rust installed and you can build from the source code, good for you.
-
-If you don't just take the *L* for now and I'll have a binary release at some point.
+Don't download, this is niether stable nor useable, nor useful if you did figure it out. I'll change this message if this project becomes any of those three.
 
 math is explained in [./doc/how-to-math.pdf](./doc/how-to-math.pdf)
 

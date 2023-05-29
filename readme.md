@@ -1,8 +1,8 @@
-<img src="./doc/sigma.png">
+<img src="./graphic/sigma.png">
 
 <br/><br/>
 
-<img src="./doc/Solvation.png">
+<img src="./graphic/Solvation.png">
 
 <br/><br/>
 
@@ -12,9 +12,11 @@ As always, I'm not using libraries or any of that. Everything here is homemade :
 
 # **how to use**
 
-Don't download, this is niether stable nor useable, nor useful if you did figure it out. I'll change this message if this project becomes any of those three.
+don't even try to run it unless you want to contribute (or fix my terrible formatting), this is niether stable nor useable, nor useful if you did figure it out. I'll change this message if this project becomes any of those three.
 
 math is explained in [./doc/how-to-math.pdf](./doc/how-to-math.pdf)
+
+<img src="./graphic/tex-meme.png" width=300>
 
 **basic syntax:**
 

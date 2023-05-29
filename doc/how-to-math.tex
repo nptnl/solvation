@@ -7,7 +7,6 @@
 \usepackage{graphicx}
 
 \geometry{left=0.5in, top=0.5in, right=0.5in, bottom=0.5in}
-\graphicspath{.}
 \title{how to math}
 \author{nptnl}
 \date{May 28, 2023}
@@ -116,7 +115,7 @@ Next, we can use the inverse of a property used for $\exp(x)$, and multiply the 
 
 This is repeated until the magnitude falls within a radius of accuracy for our polynomial approximation, using 16 terms. To range-fix the unit part, the unit circle is split into four sections, divided at $θ = \frac{π}{4}, \frac{3π}{4}, \frac{5π}{4}$, and $\frac{7π}{4}$. I'll call these sections $α, β, γ$, and $δ$.
 
-\includegraphics[scale=1.02]{ln-rf-diagram.png}
+\includegraphics{../graphic/ln-rf-diagram.png}
 
 Inputs in region $α$ are already within an accurate range of the Taylor polynomial, the other three regions must be mapped into region $α$. To begin, assuming some complex number $u_x = a + bi$ of magnitude 1, inputs in region $γ$ can simply be negated, with $πi$ added to the output. Inputs in regions $β$ and $δ$ can be range-fixed using a rotation of $±\frac{π}{2}$:
 
@@ -133,6 +132,74 @@ Inputs in region $α$ are already within an accurate range of the Taylor polynom
 \end{align*}
 
 Once both the magnitude and unit circle number are range-fixed, the calculation reaches the optimized Taylor polynomial for $\ln(x)$, provided that the code remembers how it must transform the output.
+
+\section{Trigonometry}
+
+\subsection{Normal trigonometric functions}
+
+Trigonometric functions are derived from the exponential as shown:
+
+\begin{align*}
+    \sin(x) &= \frac{-1}{2}i (e^{ix} - e^{-ix}) \\
+    \cos(x) &= \frac{1}{2} (e^{ix} + e^{-ix}) \\
+    \tan(x) &= \frac{\sin(x)}{\cos(x)} \\
+    &= \frac{\frac{-1}{2}i (e^{ix} - e^{-ix})}{\frac{1}{2} (e^{ix} + e^{-ix})} \\
+    &= -i \frac{(e^{ix} - e^{-ix})}{(e^{ix} + e^{-ix})} \\
+    \cot(x) &= \frac{\cos(x)}{\sin(x)} \\
+    &= \frac{\frac{1}{2} (e^{ix} + e^{-ix})}{\frac{-1}{2}i (e^{ix} - e^{-ix})} \\
+    &= i \frac{e^{ix} + e^{-ix}}{e^{ix} - e^{-ix}} \\
+    \csc(x) &= (\sin(x))^{-1} \\
+    &= 2i (e^{ix} - e^{-ix})^{-1} \\
+    \sec(x) &= (\cos(x))^{-1} \\
+    &= 2 (e^{ix} + e^{-ix})^{-1}
+\end{align*}
+
+The hyperbolic trigonometric functions, similarly:
+
+\begin{align*}
+    \mathrm{sinh}(x) &= \frac{1}{2} (e^x - e^{-x}) \\
+    \mathrm{cosh}(x) &= \frac{1}{2} (e^x + e^{-x}) \\
+    \mathrm{tanh}(x) &= \frac{\sinh(x)}{\cosh(x)} \\
+    &= \frac{(e^x - e^{-x})}{(e^x + e^{-x})} \\
+    \mathrm{coth}(x) &= \frac{\cosh(x)}{\sinh(x)} \\
+    &= \frac{(e^x + e^{-x})}{(e^x - e^{-x})} \\
+    \mathrm{csch}(x) &= (\sinh(x))^{-1} \\
+    &= 2 (e^x - e^{-x})^{-1} \\
+    \mathrm{sech}(x) &= 2 (e^x - e^{-x})^{-1} \\
+\end{align*}
+
+\subsection{Inverse trigonometric functions}
+
+The inverse trigonometric functions are a good bit trickier:
+
+\begin{align*}
+    y &= \mathrm{asin}(x) \\
+    \sin(y) &= x \\
+    \frac{-1}{2}i (e^{iy} - e^{-iy}) &= x \\
+    e^{iy} - e^{-iy} &= 2ix \\
+    e^{2iy} - 1 &= 2ix e^{iy} \\
+    e^{2iy} - 2ix e^{iy} - 1 &= 0 \\
+\end{align*}
+
+Here, the quadratic formula is used in terms of $e^{iy}$:
+
+\begin{align*}
+    e^{iy} &= \frac{ -(-2ix) ± √{(-2ix)² - 4(1)(-1)} }{2(1)} \\
+    &= \frac{ 2ix ± √{-4x² + 4} }{2} \\
+    &= \frac{ 2ix ± 2i √{x² - 1}}{2} \\
+    &= ix ± i √{x² - 1} \\
+    &= i(x ± √{x² - 1}) \\
+\end{align*}
+
+Next, the natural logarithm gets rid of our exponential term.
+
+\begin{align*}
+    iy &= \ln(i (x ± √{x² - 1})) \\
+    iy &= \ln(i) + \ln(x ± √{x² - 1}) \\
+    iy &= \frac{π}{2}i + \ln(x ± √{x² - 1}) \\
+    y &= \frac{π}{2} - i \ln(x ± √{x² - 1}) \\
+    \mathrm{asin}(x) &= \frac{π}{2} - i \ln(x ± √{x² - 1})
+\end{align*}
 
 \end{multicols}
 \end{document}

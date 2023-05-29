@@ -47,23 +47,19 @@ Numbers can be interpreted in a variety of ways, but they all are stored as a co
 
 **variables:**
 
-To declare a new variable, use the `var` keyword, followed by its name and value. This value can be an expression, and `complete()` will simplify it. Variable and function names are stored not as a `String`, but instead as a `[char; 5]`. This means that while you can still use >5-character names, the code will only store the first 5 characters, meaning it will not be able to distinguish between names `longname2` and `longname1`, and treat them as the same variable or function.
+To declare a new variable, use the `=` operator between its name and value. This value can be an expression, and `complete()` will simplify it. Variable and function names are stored not as a `String`, but instead as a `[char; 5]`. This means that while you can still use >5-character names, the code will only store the first 5 characters, meaning it will not be able to distinguish between names `longname2` and `longname1`, and treat them as the same variable or function. Solvation will still return the value when assigning to a variable, but this might change in the future. The same operator can also be used for re-assignment.
 
 ```
-var x 4
-var λ 3 + 2
+x = 4
+[Σ] 4
+λ = 3 + 2
+[Σ] 5
 x * λ
 [Σ] 20
-```
-
-Slight adjustments had to be made, but names work with Unicode characters. After a variable has been declared, it can be re-assigned with the `=` operator. Note that nothing in this program can return nothing (yet), and so re-assignment expressions return the value that is assigned.
-
-```
-var re 3
-re = re + 1
-[Σ] 4
-re
-[Σ] 4
+λ = 6
+[Σ] 6
+x * λ
+[Σ] 24
 ```
 
 **functions:**

@@ -22,11 +22,6 @@ pub fn roll() {
         chain = split_input(take_input());
 
         match chain[0].as_str() {
-            "var" => {
-                ans = complete(tokenize(chain[2..].to_vec(), &variables, &functions), &mut variables, &functions).extract_val();
-                variables.insert( ['a', 'n', 's', ' ', ' '], ans );
-                variables.insert( get_five(chain[1].as_str().to_string()), ans );
-            },
             "def" => {
                 let (finding, start): (Vec<(u16, String)>, usize) = get_inputs(chain.clone());
                 replace_inputs(&mut chain, &finding);
@@ -92,6 +87,7 @@ pub(crate) enum Bat {
     Func([char; 5]),
     Inp(u16),
     Builtin(BasicFn),
+    Somn([char; 5]),
 }
 impl Bat {
     fn extract_val(self) -> Comp {
@@ -111,6 +107,7 @@ impl Bat {
         match self {
             Self::Var(name, _) => name,
             Self::Func(name) => name,
+            Self::Somn(name) => name,
             e => panic!("attempted to extract name from non-var-func {:?}", e),
         }
     }
@@ -212,7 +209,7 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Comp>,
         Some(_) => return Bat::Func(name),
         None => (),
     }
-    panic!("goofball got an invalid token {}", word) // for no matches
+    Bat::Somn(name) // for no matches
 }
 fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Vec<Bat> {
     let mut depth: u16 = 0;
@@ -224,13 +221,12 @@ fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Comp>, fnlist: &Has
 }
 
 fn binary_operate(operation: BinOp, first: Bat, last: Comp, varlist: &mut HashMap<[char; 5], Comp>) -> Comp {
-    let extracted: Comp = first.extract_val();
     match operation {
-        BinOp::Add => extracted + last,
-        BinOp::Sub => extracted - last,
-        BinOp::Mul => extracted * last,
-        BinOp::Div => extracted / last,
-        BinOp::Pow => extracted.pow(last),
+        BinOp::Add => first.extract_val() + last,
+        BinOp::Sub => first.extract_val() - last,
+        BinOp::Mul => first.extract_val() * last,
+        BinOp::Div => first.extract_val() / last,
+        BinOp::Pow => first.extract_val().pow(last),
         BinOp::Assign => { varlist.insert(first.extract_name(), last); return last },
     }
 }
@@ -258,11 +254,11 @@ fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
 }
 fn bin_replace(current: &mut Vec<Bat>, indx: usize, varlist: &mut HashMap<[char; 5], Comp>) {
     let replace: Comp = 
-        binary_operate(current[indx].extract_rel(),
-        current[indx-1], current[indx+1].extract_val(), varlist);
+    binary_operate(current[indx].extract_rel(),
+    current[indx-1], current[indx+1].extract_val(), varlist);
 
-        current.drain(indx-1..indx+2);
-        current.insert(indx-1, Bat::Val(replace));
+    current.drain(indx-1..indx+2);
+    current.insert(indx-1, Bat::Val(replace));
 }
 fn paren_replace(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut HashMap<[char; 5], Comp>) {
     let replace: Bat = order_operations(current[start+1..end].to_vec(), varlist);
@@ -327,6 +323,7 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(replace));
 }
+
 fn order_operations(simple: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>) -> Bat {
     let mut shrinking: Vec<Bat> = simple.clone();
     let mut maybe: Option<usize>;

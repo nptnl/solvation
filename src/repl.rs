@@ -15,9 +15,7 @@ pub fn roll() {
 
     functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
 
-    let mut ans: Bat = Bat::Nomn;
     let mut chain: Vec<String>;
-
     loop {
         chain = split_input(take_input());
 
@@ -28,20 +26,11 @@ pub fn roll() {
 
                 functions.insert( get_five(chain[1].as_str().to_string()),
                 ( finding.len() as u16, tokenize(chain[start..].to_vec(), &variables, &functions) ) );
+
+                println!("[Σ] Done");
             },
-            "iter" => {
-                let times: u16 = match chain[1].parse::<u16>() {
-                    Ok(v) => v, Err(_) => 1,
-                };
-                let mut expr: Vec<Bat>;
-                for _ in 0..times {
-                    expr = tokenize(chain[2..].to_vec(), &variables, &functions);
-                    ans = complete(expr, &mut variables, &functions);
-                }
-                println!("[Σ] {ans}");
-            }
             _ => {
-                ans = complete(tokenize(chain, &variables, &functions), &mut variables, &functions);
+                let ans = complete(tokenize(chain, &variables, &functions), &mut variables, &functions);
                 if let Bat::Val(_) | Bat::Var(_, _) = ans {
                     variables.insert( ['a', 'n', 's', ' ', ' '], ans.extract_val() );
                 }
@@ -83,6 +72,8 @@ pub(crate) enum Bat {
     Rel(BinOp),
     Begin(u16),
     End(u16),
+    LoopBegin(u16),
+    LoopEnd(u16),
     Comma,
     Var([char; 5], Comp),
     Func([char; 5]),
@@ -110,7 +101,7 @@ impl Bat {
             Self::Var(name, _) => name,
             Self::Func(name) => name,
             Self::Somn(name) => name,
-            e => panic!("attempted to extract name from non-var-func {:?}", e),
+            e => panic!("attempted to extract name from non-somn {:?}", e),
         }
     }
     fn extract_basic(self) -> BasicFn {
@@ -147,6 +138,7 @@ fn take_input() -> String {
 fn split_input(raw: String) -> Vec<String> {
     raw.replace(",", " , ")
     .replace(")", " ) ").replace("(", " ( ")
+    .replace("[", " [ ").replace("]", " ] ")
     .split_whitespace().map(|x| x.to_string()).collect()
 }
 pub(crate) fn get_five(word: String) -> [char; 5] {
@@ -171,6 +163,8 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Comp>,
         "," => return Bat::Comma,
         "(" => {*depth += 1; return Bat::Begin(*depth); },
         ")" => {*depth -= 1; return Bat::End(*depth+1); },
+        "[" => {*depth += 1; return Bat::LoopBegin(*depth); },
+        "]" => {*depth -= 1; return Bat::LoopEnd(*depth+1); },
         "+" => return Bat::Rel(BinOp::Add),
         "-" => return Bat::Rel(BinOp::Sub),
         "*" | "×" | "·" => return Bat::Rel(BinOp::Mul),
@@ -238,20 +232,23 @@ fn binary_operate(operation: BinOp, first: Bat, last: Bat, varlist: &mut HashMap
         BinOp::Mul => Bat::Val( first.extract_val() * last.extract_val() ),
         BinOp::Div => Bat::Val( first.extract_val() / last.extract_val() ),
         BinOp::Pow => Bat::Val( first.extract_val().pow(last.extract_val()) ),
-        BinOp::Assign => { varlist.insert(first.extract_name(), last.extract_val()); return Bat::Nomn },
+        BinOp::Assign => {
+            varlist.insert(first.extract_name(), last.extract_val());
+            return Bat::Nomn;
+        },
     }
 }
-fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
+fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize, bool)> {
     let mut start: Option<usize> = None;
     let mut finish: Option<usize> = None;
     let mut s_max: u16 = 0;
     let mut f_max: u16 = 0;
     for (indx, token) in content.iter().enumerate() {
         match *token {
-            Bat::Begin(d) => {
+            Bat::Begin(d)| Bat::LoopBegin(d) => {
                 if d > s_max { start = Some(indx); s_max = d }
             }
-            Bat::End(d) => {
+            Bat::End(d) | Bat::LoopEnd(d) => {
                 if d > f_max { finish = Some(indx); f_max = d }
             }
             _ => (),
@@ -259,15 +256,18 @@ fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
     };
     match (start, finish) {
         (Some(_), None) | (None, Some(_)) => panic!("unopened ) or unclosed ("),
-        (Some(s), Some(f)) => Some((s,f)),
         (None, None) => None,
+        (Some(s), Some(f)) => {
+            let looping: bool =
+            if let Bat::LoopBegin(_) = content[s] { true } else { false };
+            Some((s, f, looping))
+        },
     }
 }
 fn bin_replace(current: &mut Vec<Bat>, indx: usize, varlist: &mut HashMap<[char; 5], Comp>) {
     let replace: Bat = 
     binary_operate(current[indx].extract_rel(),
     current[indx-1], current[indx+1], varlist);
-
     current.drain(indx-1..indx+2);
     current.insert(indx-1, replace);
 }
@@ -363,7 +363,7 @@ fn order_operations(simple: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>) ->
             Some(indx) => { bin_replace(&mut shrinking, indx, varlist); continue },
             None => (),
         }
-        return shrinking[0];
+        return shrinking[shrinking.len()-1];
     }
 }
 fn complete(input: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
@@ -371,7 +371,8 @@ fn complete(input: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &Ha
     loop {
         match find_deepest(shrinking.clone()) {
             None => return order_operations(shrinking, varlist),
-            Some((s,f)) => {
+            Some((s, f, looping)) => {
+                if looping { println!("lop"); exec_iter(&mut shrinking, s, f, varlist, fnlist); continue };
                 if s == 0 { paren_replace(&mut shrinking, s, f, varlist); continue };
                 match shrinking[s-1] {
                     Bat::Func(name) => func_replace(&mut shrinking, s, f, name, varlist, &fnlist),
@@ -380,6 +381,30 @@ fn complete(input: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &Ha
                     _ => paren_replace(&mut shrinking, s, f, varlist),
                 }
             },
+        }
+    }
+}
+
+fn exec_iter(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) {
+    println!("iterating");
+    let mut expr: Bat;
+    let mut iter: u16 = 0;
+    loop {
+        update_vars(current, varlist);
+        expr = complete(current[start+1..end].to_vec(), varlist, fnlist);
+        iter += 1;
+        if iter > 5 {
+            current.drain(start..end+1);
+            current.insert(start, expr);
+            break
+        }
+    }
+}
+fn update_vars(current: &mut Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>) {
+    for (indx, each) in current.clone().iter().enumerate() {
+        match each {
+            Bat::Var(name, _) => current[indx] = Bat::Var(*name, *varlist.get(name).unwrap()),
+            _ => (),
         }
     }
 }

@@ -47,17 +47,17 @@ Numbers can be interpreted in a variety of ways, but they all are stored as a co
 
 **variables:**
 
-To declare a new variable, use the `=` operator between its name and value. This value can be an expression, and `complete()` will simplify it. Variable and function names are stored not as a `String`, but instead as a `[char; 5]`. This means that while you can still use >5-character names, the code will only store the first 5 characters, meaning it will not be able to distinguish between names `longname2` and `longname1`, and treat them as the same variable or function. Solvation will still return the value when assigning to a variable, but this might change in the future. The same operator can also be used for re-assignment.
+To declare a new variable, use the `=` operator between its name and value. This value can be an expression, and `complete()` will simplify it. Variable and function names are stored not as a `String`, but instead as a `[char; 5]`. This means that while you can still use >5-character names, the code will only store the first 5 characters, meaning it will not be able to distinguish between names `longname2` and `longname1`, and treat them as the same variable or function. The same operator can also be used for re-assignment.
 
 ```
 x = 4
-[Σ] 4
+[Σ] Done
 λ = 3 + 2
-[Σ] 5
+[Σ] Done
 x * λ
 [Σ] 20
 λ = 6
-[Σ] 6
+[Σ] Done
 x * λ
 [Σ] 24
 ```
@@ -70,6 +70,7 @@ This example computes the magnitude of a diagonal line set by two inputs.
 
 ```
 def mag(x, y) (x * x + y * y) ^ 0.5
+[Σ] Done
 mag(1,2)
 [Σ] 2.2360198347089875
 mag(1,1)
@@ -78,12 +79,17 @@ mag(1,1)
 
 **iterators:**
 
-To iterate a calculation, use keyword `iter`, followed by the number of iterations, followed by the calculations to execute. This should probably include a re-assignment...
+To iterate a calculation, enclose the loop in [brackets]. As of right now, this just iterates six times. Once conditional jumps are implemented, I'll add a `break` command. This should probably include a re-assignment...
 
 ```
-var x 0
-iter 4 x = x + 1
-[Σ] 4
+x = 0
+[Σ] Done
+n = 1
+[Σ] Done
+[n = n + 1, x = x + n]
+[Σ] Done
+n
+[Σ] 7
 x
-[Σ] 4
+[Σ] 21
 ```

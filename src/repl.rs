@@ -137,7 +137,7 @@ pub(crate) enum Type {
     B(bool),
 }
 impl Type {
-    fn get_bool(self) -> bool {
+    fn _get_bool(self) -> bool {
         match self {
             Self::B(v) => v,
             e => panic!("attempted to extract boolean from non-bool {:?}", e),
@@ -472,7 +472,7 @@ fn complete(
         match find_deepest(shrinking.clone()) {
             None => return order_operations(shrinking, varlist),
             Some((s, f, looping)) => {
-                if looping { println!("lop"); exec_iter(&mut shrinking, s, f, varlist, fnlist); continue };
+                if looping { exec_iter(&mut shrinking, s, f, varlist, fnlist); continue };
                 if s == 0 { paren_replace(&mut shrinking, s, f, varlist); continue };
                 match shrinking[s-1] {
                     Bat::Func(name) => func_replace(&mut shrinking, s, f, name, varlist, &fnlist),
@@ -491,7 +491,6 @@ fn exec_iter(
     varlist: &mut HashMap<[char; 5], Type>,
     fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>,
 ) {
-    println!("iterating");
     let mut expr: Bat;
     let mut iter: u16 = 0;
     loop {

@@ -201,5 +201,25 @@ Next, the natural logarithm gets rid of our exponential term.
     \mathrm{asin}(x) &= \frac{π}{2} - i \ln(x ± √{x² - 1})
 \end{align*}
 
+That was a rather enjoyable derivation, yes? Let's go for $\mathrm{acos}(x)$ now.
+
+\begin{align*}
+    y &= \mathrm{acos}(x) \\
+    \cos(y) &= x \\
+    \frac{1}{2} (e^{iy} + e^{-iy}) &= x \\
+    e^{iy} + e^{-iy} &= 2x \\
+    e^{2iy} + 1 &= 2x e^{iy} \\
+    e^{2iy} - 2x e^{iy} + 1 &= 0 \\
+\end{align*}
+\begin{align*}
+    e^{iy} &= \frac{ -(-2x) ± √{(-2x)² - 4(1)1} }{2(1)} \\
+    e^{iy} &= \frac{ 2x ± √{4x - 4} }{2} \\
+    e^{iy} &= \frac{ 2x ± 2 √{x - 1} }{2} \\
+    e^{iy} &= x ± √{x - 1} \\
+    iy &= \ln(x ± √{x - 1}) \\
+    y &= -i \ln(x ± √{x - 1}) \\
+    \mathrm{acos}(x) &= -i \ln(x ± √{x - 1})
+\end{align*}
+
 \end{multicols}
 \end{document}

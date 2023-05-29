@@ -6,11 +6,11 @@ use std::collections::HashMap;
 
 pub fn roll() {
 
-    let mut variables: HashMap<[char; 5], Comp> = HashMap::new();
+    let mut variables: HashMap<[char; 5], Type> = HashMap::new();
     let mut functions: HashMap<[char; 5], (u16, Vec<Bat>)> = HashMap::new();
 
     for var in preset::PRE_VAR {
-        variables.insert(var.0, var.1);
+        variables.insert(var.0, Type::C(var.1));
     }
 
     functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
@@ -68,14 +68,16 @@ fn replace_inputs(chain: &mut Vec<String>, inputs: &Vec<(u16, String)>) {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Bat {
-    Val(Comp),
+    Val(Type),
     Rel(BinOp),
     Begin(u16),
     End(u16),
     LoopBegin(u16),
     LoopEnd(u16),
     Comma,
-    Var([char; 5], Comp),
+    Assign,
+    Increment,
+    Var([char; 5], Type),
     Func([char; 5]),
     Inp(u16),
     Builtin(BasicFn),
@@ -83,7 +85,7 @@ pub(crate) enum Bat {
     Nomn,
 }
 impl Bat {
-    fn extract_val(self) -> Comp {
+    fn extract_val(self) -> Type {
         match self {
             Self::Val(v) => v,
             Self::Var(_, v) => v,
@@ -127,7 +129,57 @@ pub(crate) enum BinOp {
     Mul,
     Div,
     Pow,
-    Assign,
+}
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) enum Type {
+    C(Comp),
+    N(u16),
+    B(bool),
+}
+impl Type {
+    fn get_bool(self) -> bool {
+        match self {
+            Self::B(v) => v,
+            e => panic!("attempted to extract boolean from non-bool {:?}", e),
+        }
+    }
+    fn get_indx(self) -> u16 {
+        match self {
+            Self::N(v) => v,
+            e => panic!("attempted to extract indx from non-nat {:?}", e),
+        }
+    }
+    fn get_comp(self) -> Comp {
+        match self {
+            Self::C(v) => v,
+            e => panic!("attempted to extract comp from non-comp {:?}", e),
+        }
+    }
+}
+impl std::str::FromStr for Type {
+    type Err = ();
+    fn from_str(slice: &str) -> Result<Self, Self::Err> {
+        if slice.chars().nth(0).unwrap() == '`' {
+            match slice[1..].parse::<u16>() {
+                Ok(v) => return Ok(Self::N(v)),
+                Err(_) => return Err(()),
+            }
+        }
+        if let Ok(v) = slice.parse::<bool>() { return Ok(Self::B(v)) }
+        match slice.parse::<Comp>() {
+            Ok(v) => Ok(Self::C(v)),
+            Err(e) => Err(e),
+        }
+    }
+}
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::C(v) => write!(f, "{}", v),
+            Self::N(v) => write!(f, "{}", v),
+            Self::B(v) => write!(f, "{}", v),
+        }
+    }
 }
 
 fn take_input() -> String {
@@ -152,9 +204,13 @@ pub(crate) fn get_five(word: String) -> [char; 5] {
     }
     out
 }
-fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Comp>,
-    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
-    match word.parse::<Comp>() {
+fn encode_one(
+    word: String,
+    depth: &mut u16,
+    varlist: &HashMap<[char; 5], Type>,
+    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>,
+) -> Bat {
+    match word.parse::<Type>() {
         Ok(v) => return Bat::Val(v),
         Err(_) => (),
     };
@@ -170,7 +226,9 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Comp>,
         "*" | "×" | "·" => return Bat::Rel(BinOp::Mul),
         "/" | "÷" => return Bat::Rel(BinOp::Div),
         "^" => return Bat::Rel(BinOp::Pow),
-        "=" => return Bat::Rel(BinOp::Assign),
+
+        "=" => return Bat::Assign,
+        "++" => return Bat::Increment,
 
         "exp" => return Bat::Builtin(BasicFn::Exponential),
         "ln" => return Bat::Builtin(BasicFn::NaturalLog),
@@ -216,7 +274,11 @@ fn encode_one(word: String, depth: &mut u16, varlist: &HashMap<[char; 5], Comp>,
     }
     Bat::Somn(name) // for no matches
 }
-fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Vec<Bat> {
+fn tokenize(
+    chain: Vec<String>,
+    varlist: &HashMap<[char; 5], Type>,
+    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>
+) -> Vec<Bat> {
     let mut depth: u16 = 0;
     let mut processed: Vec<Bat> = Vec::new();
     for word in chain {
@@ -225,17 +287,13 @@ fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Comp>, fnlist: &Has
     processed
 }
 
-fn binary_operate(operation: BinOp, first: Bat, last: Bat, varlist: &mut HashMap<[char; 5], Comp>) -> Bat {
+fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
         match operation {
-        BinOp::Add => Bat::Val( first.extract_val() + last.extract_val() ),
-        BinOp::Sub => Bat::Val( first.extract_val() - last.extract_val() ),
-        BinOp::Mul => Bat::Val( first.extract_val() * last.extract_val() ),
-        BinOp::Div => Bat::Val( first.extract_val() / last.extract_val() ),
-        BinOp::Pow => Bat::Val( first.extract_val().pow(last.extract_val()) ),
-        BinOp::Assign => {
-            varlist.insert(first.extract_name(), last.extract_val());
-            return Bat::Nomn;
-        },
+        BinOp::Add => Bat::Val(Type::C( first.extract_val().get_comp() + last.extract_val().get_comp() )),
+        BinOp::Sub => Bat::Val(Type::C( first.extract_val().get_comp() - last.extract_val().get_comp() )),
+        BinOp::Mul => Bat::Val(Type::C( first.extract_val().get_comp() * last.extract_val().get_comp() )),
+        BinOp::Div => Bat::Val(Type::C( first.extract_val().get_comp() / last.extract_val().get_comp() )),
+        BinOp::Pow => Bat::Val(Type::C( first.extract_val().get_comp().pow(last.extract_val().get_comp()) )),
     }
 }
 fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize, bool)> {
@@ -264,20 +322,30 @@ fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize, bool)> {
         },
     }
 }
-fn bin_replace(current: &mut Vec<Bat>, indx: usize, varlist: &mut HashMap<[char; 5], Comp>) {
+fn bin_replace(
+    current: &mut Vec<Bat>,
+    indx: usize,
+) {
     let replace: Bat = 
-    binary_operate(current[indx].extract_rel(),
-    current[indx-1], current[indx+1], varlist);
+    binary_operate(current[indx].extract_rel(), current[indx-1], current[indx+1]);
     current.drain(indx-1..indx+2);
     current.insert(indx-1, replace);
 }
-fn paren_replace(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut HashMap<[char; 5], Comp>) {
+fn paren_replace(
+    current: &mut Vec<Bat>,
+    start: usize, end: usize,
+    varlist: &mut HashMap<[char; 5], Type>,
+) {
     let replace: Bat = order_operations(current[start+1..end].to_vec(), varlist);
     current.drain(start..end+1);
     current.insert(start, replace);
 }
-fn func_replace(current: &mut Vec<Bat>, start: usize, end: usize,
-    name: [char; 5], varlist: &mut HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) {
+fn func_replace(
+    current: &mut Vec<Bat>,
+    start: usize, end: usize, name: [char; 5],
+    varlist: &mut HashMap<[char; 5], Type>,
+    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>
+) {
     let split: Vec<Vec<Bat>> = current[start+1..end].split(|&x| x == Bat::Comma)
     .map(|x| x.to_vec()).collect();
     let mut inputs: Vec<Bat> = Vec::new();
@@ -295,19 +363,23 @@ fn func_replace(current: &mut Vec<Bat>, start: usize, end: usize,
     current.drain(start-1..end+1);
     current.insert(start-1, complete(working, varlist, fnlist));
 }
-fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut HashMap<[char; 5], Comp>) {
+fn basic_replace(
+    current: &mut Vec<Bat>,
+    start: usize, end: usize,
+    varlist: &mut HashMap<[char; 5], Type>,
+) {
     let split: Vec<Vec<Bat>> = current[start+1..end].split(|&x| x == Bat::Comma)
     .map(|x| x.to_vec()).collect();
     let mut inputs: Vec<Bat> = Vec::new();
     for expression in split {
         inputs.push(order_operations(expression, varlist))
     }
-    let first: Comp = inputs[0].extract_val();
+    let first: Comp = inputs[0].extract_val().get_comp();
     let replace: Comp = match current[start-1].extract_basic() {
 
         BasicFn::Exponential => preset::exp(first),
         BasicFn::NaturalLog => preset::ln(first),
-        BasicFn::LogBase => preset::log(first, inputs[1].extract_val()),
+        BasicFn::LogBase => preset::log(first, inputs[1].extract_val().get_comp()),
 
         BasicFn::Sine => trig::sin(first),
         BasicFn::Cosine => trig::cos(first),
@@ -332,41 +404,69 @@ fn basic_replace(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut
 
     };
     current.drain(start-1..end+1);
-    current.insert(start-1, Bat::Val(replace));
+    current.insert(start-1, Bat::Val(Type::C(replace)));
+}
+fn do_assign(
+    current: &mut Vec<Bat>,
+    indx: usize,
+    varlist: &mut HashMap<[char; 5], Type>,
+) {
+    varlist.insert(current[indx-1].extract_name(), current[indx+1].extract_val());
+    current.drain(indx-1..indx+2);
+    current.insert(indx-1, Bat::Nomn);
+}
+fn do_increment(
+    current: &mut Vec<Bat>,
+    indx: usize,
+    varlist: &mut HashMap<[char; 5], Type>,
+) {
+    varlist.insert(current[indx-1].extract_name(), Type::N(current[indx-1].extract_val().get_indx() + 1u16));
+    current.drain(indx-1..indx+1);
+    current.insert(indx-1, Bat::Nomn);
 }
 
-fn order_operations(simple: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>) -> Bat {
+fn order_operations(
+    simple: Vec<Bat>,
+    varlist: &mut HashMap<[char; 5], Type>,
+) -> Bat {
     let mut shrinking: Vec<Bat> = simple.clone();
     let mut maybe: Option<usize>;
     loop {
-        maybe = shrinking.clone().iter().position(|&x|
-            x == Bat::Rel(BinOp::Pow));
+        maybe = shrinking.clone().iter().position(|&x| x == Bat::Rel(BinOp::Pow));
         match maybe {
-            Some(indx) => { bin_replace(&mut shrinking, indx, varlist); continue },
+            Some(indx) => { bin_replace(&mut shrinking, indx); continue },
             None => (),
         }
         maybe = shrinking.clone().iter().position(|&x|
         x == Bat::Rel(BinOp::Div) || x == Bat::Rel(BinOp::Mul));
         match maybe {
-            Some(indx) => { bin_replace(&mut shrinking, indx, varlist); continue },
+            Some(indx) => { bin_replace(&mut shrinking, indx); continue },
             None => (),
         };
         maybe = shrinking.clone().iter().position(|&x|
         x == Bat::Rel(BinOp::Sub) || x == Bat::Rel(BinOp::Add));
         match maybe {
-            Some(indx) => { bin_replace(&mut shrinking, indx, varlist); continue },
+            Some(indx) => { bin_replace(&mut shrinking, indx); continue },
             None => (),
         };
-        maybe = shrinking.iter().position(|&x|
-        x == Bat::Rel(BinOp::Assign));
+        maybe = shrinking.clone().iter().position(|&x| x == Bat::Assign);
         match maybe {
-            Some(indx) => { bin_replace(&mut shrinking, indx, varlist); continue },
+            Some(indx) => { do_assign(&mut shrinking, indx, varlist); continue },
+            None => (),
+        }
+        maybe = shrinking.clone().iter().position(|&x| x == Bat::Increment);
+        match maybe {
+            Some(indx) =>  { do_increment(&mut shrinking, indx, varlist); continue },
             None => (),
         }
         return shrinking[shrinking.len()-1];
     }
 }
-fn complete(input: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) -> Bat {
+fn complete(
+    input: Vec<Bat>,
+    varlist: &mut HashMap<[char; 5], Type>,
+    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>,
+) -> Bat {
     let mut shrinking: Vec<Bat> = input;
     loop {
         match find_deepest(shrinking.clone()) {
@@ -385,7 +485,12 @@ fn complete(input: Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &Ha
     }
 }
 
-fn exec_iter(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut HashMap<[char; 5], Comp>, fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>) {
+fn exec_iter(
+    current: &mut Vec<Bat>,
+    start: usize, end: usize,
+    varlist: &mut HashMap<[char; 5], Type>,
+    fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>,
+) {
     println!("iterating");
     let mut expr: Bat;
     let mut iter: u16 = 0;
@@ -400,7 +505,10 @@ fn exec_iter(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut Has
         }
     }
 }
-fn update_vars(current: &mut Vec<Bat>, varlist: &mut HashMap<[char; 5], Comp>) {
+fn update_vars(
+    current: &mut Vec<Bat>,
+    varlist: &mut HashMap<[char; 5], Type>
+) {
     for (indx, each) in current.clone().iter().enumerate() {
         match each {
             Bat::Var(name, _) => current[indx] = Bat::Var(*name, *varlist.get(name).unwrap()),

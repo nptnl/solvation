@@ -62,6 +62,17 @@ x * λ
 [Σ] 24
 ```
 
+Values in Solvation currently take on one of three types: `Comp` (my homemade complex numbers), `u16` and `bool`. By default, all numbers will be parsed as complex numbers, for consistent arithmetic. To create a `u16`, prefix the value with ``` ` ```. The `++` operator is available to increment `u16` values by one.
+
+```
+x = `1
+[Σ] Done
+x ++
+[Σ] Done
+x
+[Σ] 2
+```
+
 **functions:**
 
 To declare a function, use keyword `def`, followed by `name(inp1, inp2, ...)`, then the contents of the function. Solvation will analyze the input names and replace any instances of them with an input token. The commas here are important as they are used to separate inputs instead of spaces.
@@ -77,14 +88,27 @@ mag(1,1)
 1.4142134378915125
 ```
 
-**iterators:**
+**multitasking:**
 
-To iterate a calculation, enclose the loop in [brackets]. As of right now, this just iterates six times. Once conditional jumps are implemented, I'll add a `break` command. This should probably include a re-assignment...
+You can complete multiple calculations in one line, although only one (the last one) will return. This is useful for variable assignment and reassignment, as these statements will not return values anyways, and rather execute something that will effect the calculation later on. Divide statements with commas.
 
 ```
-x = 0
+x = `1, y = `2
 [Σ] Done
-n = 1
+x ++, y ++
+[Σ] Done
+x
+[Σ] 2
+y
+[Σ] 2 
+```
+
+**iterators:**
+
+To iterate a calculation, enclose the loop in [brackets]. As of right now, this just iterates six times (a bit goofy I reckon). Once conditional jumps are implemented, I'll add a `break` command. Your loops should probably contain non-returning statements...
+
+```
+x = 0, n = 1
 [Σ] Done
 [n = n + 1, x = x + n]
 [Σ] Done

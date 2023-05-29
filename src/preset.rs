@@ -1,5 +1,5 @@
 use crate::comp::Comp;
-use crate::repl::{Bat, BinOp};
+use crate::repl::{Bat, BinOp, Type};
 
 static ZERO: Comp = Comp { r: 0.0, i: 0.0 };
 static ONE: Comp = Comp { r: 1.0, i: 0.0 };
@@ -126,9 +126,9 @@ static DX: Comp = Comp { r: 0.00000000001, i: 0.0 };
 
 pub(crate) static LIMIT_DVT: [Bat; 15] = [
     Bat::Begin(1),
-    Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::Rel(BinOp::Add), Bat::Val(DX), Bat::End(2),
+    Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::Rel(BinOp::Add), Bat::Val(Type::C(DX)), Bat::End(2),
     Bat::Rel(BinOp::Sub),
     Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::End(2),
     Bat::End(1),
-    Bat::Rel(BinOp::Div), Bat::Val(DX),
+    Bat::Rel(BinOp::Div), Bat::Val(Type::C(DX)),
 ];

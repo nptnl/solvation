@@ -15,7 +15,7 @@ pub fn roll() {
 
     functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
 
-    let mut ans: Comp;
+    let mut ans: Bat = Bat::Nomn;
     let mut chain: Vec<String>;
 
     loop {
@@ -34,16 +34,17 @@ pub fn roll() {
                     Ok(v) => v, Err(_) => 1,
                 };
                 let mut expr: Vec<Bat>;
-                let mut ans: Comp = Comp { r: 0.0, i: 0.0 };
                 for _ in 0..times {
                     expr = tokenize(chain[2..].to_vec(), &variables, &functions);
-                    ans = complete(expr, &mut variables, &functions).extract_val();
+                    ans = complete(expr, &mut variables, &functions);
                 }
                 println!("[Σ] {ans}");
             }
             _ => {
-                ans = complete(tokenize(chain, &variables, &functions), &mut variables, &functions).extract_val();
-                variables.insert( ['a', 'n', 's', ' ', ' '], ans );
+                ans = complete(tokenize(chain, &variables, &functions), &mut variables, &functions);
+                if let Bat::Val(_) | Bat::Var(_, _) = ans {
+                    variables.insert( ['a', 'n', 's', ' ', ' '], ans.extract_val() );
+                }
                 println!("[Σ] {ans}");
             },
         };
@@ -88,6 +89,7 @@ pub(crate) enum Bat {
     Inp(u16),
     Builtin(BasicFn),
     Somn([char; 5]),
+    Nomn,
 }
 impl Bat {
     fn extract_val(self) -> Comp {
@@ -115,6 +117,15 @@ impl Bat {
         match self {
             Self::Builtin(v) => v,
             e => panic!("attempted to extract basic from non-basic {:?}", e),
+        }
+    }
+}
+impl std::fmt::Display for Bat {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Bat::Val(v) => write!(f, "{}", *v),
+            Bat::Var(_, v) => write!(f, "{}", *v),
+            _ => write!(f, "Done"),
         }
     }
 }
@@ -220,14 +231,14 @@ fn tokenize(chain: Vec<String>, varlist: &HashMap<[char; 5], Comp>, fnlist: &Has
     processed
 }
 
-fn binary_operate(operation: BinOp, first: Bat, last: Comp, varlist: &mut HashMap<[char; 5], Comp>) -> Comp {
-    match operation {
-        BinOp::Add => first.extract_val() + last,
-        BinOp::Sub => first.extract_val() - last,
-        BinOp::Mul => first.extract_val() * last,
-        BinOp::Div => first.extract_val() / last,
-        BinOp::Pow => first.extract_val().pow(last),
-        BinOp::Assign => { varlist.insert(first.extract_name(), last); return last },
+fn binary_operate(operation: BinOp, first: Bat, last: Bat, varlist: &mut HashMap<[char; 5], Comp>) -> Bat {
+        match operation {
+        BinOp::Add => Bat::Val( first.extract_val() + last.extract_val() ),
+        BinOp::Sub => Bat::Val( first.extract_val() - last.extract_val() ),
+        BinOp::Mul => Bat::Val( first.extract_val() * last.extract_val() ),
+        BinOp::Div => Bat::Val( first.extract_val() / last.extract_val() ),
+        BinOp::Pow => Bat::Val( first.extract_val().pow(last.extract_val()) ),
+        BinOp::Assign => { varlist.insert(first.extract_name(), last.extract_val()); return Bat::Nomn },
     }
 }
 fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
@@ -253,12 +264,12 @@ fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize)> {
     }
 }
 fn bin_replace(current: &mut Vec<Bat>, indx: usize, varlist: &mut HashMap<[char; 5], Comp>) {
-    let replace: Comp = 
+    let replace: Bat = 
     binary_operate(current[indx].extract_rel(),
-    current[indx-1], current[indx+1].extract_val(), varlist);
+    current[indx-1], current[indx+1], varlist);
 
     current.drain(indx-1..indx+2);
-    current.insert(indx-1, Bat::Val(replace));
+    current.insert(indx-1, replace);
 }
 fn paren_replace(current: &mut Vec<Bat>, start: usize, end: usize, varlist: &mut HashMap<[char; 5], Comp>) {
     let replace: Bat = order_operations(current[start+1..end].to_vec(), varlist);

@@ -221,5 +221,60 @@ That was a rather enjoyable derivation, yes? Let's go for $\mathrm{acos}(x)$ now
     \mathrm{acos}(x) &= -i \ln(x ± √{x - 1})
 \end{align*}
 
+...next...
+
+\begin{align*}
+    y &= \mathrm{atan}(x) \\
+    \tan(y) &= x \\
+    -i \frac{e^{iy} - e^{-iy}}{e^{iy} + e^{-iy}} &= x \\
+    e^{iy} - e^{-iy} &= ix (e^{iy} + e^{-iy}) \\
+    e^{iy} - e^{-iy} &= ix e^{iy} + ix e^{-iy} \\
+    0 &= (ix - 1) e^{iy} + (ix + 1) e^{-iy} \\
+    0 &= (ix - 1) e^{2iy} + (ix + 1) \\
+    (-1) (ix + 1) &= (ix - 1) e^{2iy} \\
+    (-1) \frac{ix + 1}{ix - 1} &= e^{2iy} \\
+    2iy &= \ln( (-1) \frac{ix + 1}{ix - 1} ) \\
+    2iy &= \ln(-1) + \ln(\frac{ix + 1}{ix - 1}) \\
+    2iy &= πi + \ln(\frac{ix + 1}{ix - 1}) \\
+    y &= \frac{π}{2} - \frac{1}{2} i \ln(\frac{ix + 1}{ix - 1}) \\
+    \mathrm{atan}(x) &= \frac{π}{2} - \frac{1}{2} i \ln(\frac{ix + 1}{ix - 1}) \\
+\end{align*}
+
+...just one more...
+
+\begin{align*}
+    y &= \mathrm{acot}(x) \\
+    \cot(y) &= x \\
+    i \frac{e^{iy} + e^{-iy}}{e^{iy} - e^{-iy}} &= x \\
+    i (e^{iy} + e^{-iy}) &= x (e^{iy} - e^{-iy}) \\
+    i e^{iy} + i e^{-iy} &= x e^{iy} - x e^{-iy} \\
+    0 &= (x - i) e^{iy} - (x + i) e^{-iy} \\
+    (x - i) e^{iy} &= (x + i) e^{-iy} \\
+    (x - i) e^{2iy} &= x + i \\
+    e^{2iy} &= \frac{x + i}{x - i} \\
+    2iy &= \ln( \frac{x + i}{x - i} ) \\
+    y &= - \frac{1}{2} i \ln( \frac{x + i}{x - i} ) \\
+    \mathrm{acot}(x) &= - \frac{1}{2} i \ln( \frac{x + i}{x - i} ) \\
+\end{align*}
+
+...and here we are. I'm gonna cheap out on $\mathrm{acsc}(x)$ and $\mathrm{asec}(x)$ for now.
+
+\begin{align*}
+   y &=  \mathrm{acsc}(x) \\
+   \csc(y) &= x \\
+   (\sin(y))^{-1} &= x \\
+   sin(y) &= x^{-1} \\
+   y &= \mathrm{asin}(x^{-1}) \\
+   \mathrm{acsc}(x) &= \mathrm{asin}(x^{-1}) \\
+\end{align*}
+\begin{align*}
+    y &= \mathrm{asec}(x) \\
+    \sec(y) &= x \\
+    (\cos(y))^{-1} &= x \\
+    \cos(y) &= x^{-1} \\
+    y &= \mathrm{acos}(x^{-1}) \\
+    \mathrm{asec}(x) &= \mathrm{acos}(x^{-1}) \\
+\end{align*}
+
 \end{multicols}
 \end{document}

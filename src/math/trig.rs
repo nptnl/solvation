@@ -1,5 +1,5 @@
-use crate::preset::{exp, ixp, ln};
-use crate::comp::{comp_sqrt, Comp};
+use crate::math::prim::{exp, ixp, ln};
+use crate::math::comp::{comp_sqrt, Comp};
 
 static ONE: Comp = Comp { r: 1.0, i: 0.0 };
 static I: Comp = Comp { r: 0.0, i: 1.0 };

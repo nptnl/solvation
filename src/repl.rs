@@ -1,6 +1,6 @@
-use crate::comp::Comp;
+use crate::math::comp::Comp;
+use crate::math::{prim, trig};
 use crate::preset;
-use crate::trig;
 use crate::preset::BasicFn;
 use std::collections::HashMap;
 
@@ -395,9 +395,9 @@ fn basic_replace(
     let first: Comp = inputs[0].extract_val().get_comp();
     let replace: Comp = match current[start-1].extract_basic() {
 
-        BasicFn::Exponential => preset::exp(first),
-        BasicFn::NaturalLog => preset::ln(first),
-        BasicFn::LogBase => preset::log(first, inputs[1].extract_val().get_comp()),
+        BasicFn::Exponential => prim::exp(first),
+        BasicFn::NaturalLog => prim::ln(first),
+        BasicFn::LogBase => prim::log(first, inputs[1].extract_val().get_comp()),
 
         BasicFn::Sine => trig::sin(first),
         BasicFn::Cosine => trig::cos(first),

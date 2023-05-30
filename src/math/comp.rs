@@ -1,5 +1,5 @@
 use std::{ops, cmp};
-use crate::preset::{exp, ln};
+use crate::math::prim::{exp, ln};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Comp {

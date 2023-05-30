@@ -1,8 +1,8 @@
-pub mod comp;
 pub mod repl;
 pub mod preset;
-pub mod trig;
+pub mod math;
 
 fn main() {
-    repl::roll();
+    // repl::roll();
+    println!("{:?}", math::rat::Rat::new(3,4))
 }

@@ -1,4 +1,4 @@
-use std::ops;
+use std::{ops, cmp};
 use crate::preset::{exp, ln};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -40,6 +40,8 @@ impl Comp {
     else { self.r as u16 }
     }
 }
+
+impl cmp::Eq for Comp {}
 impl ops::Neg for Comp {
     type Output = Self;
     fn neg(self) -> Self {
@@ -49,6 +51,7 @@ impl ops::Neg for Comp {
         }
     }
 }
+
 impl ops::Add<Comp> for Comp {
     type Output = Self;
     fn add(self, other: Self) -> Self {

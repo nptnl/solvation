@@ -69,19 +69,22 @@ fn replace_inputs(chain: &mut Vec<String>, inputs: &Vec<(u16, String)>) {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Bat {
     Val(Type),
+    Var([char; 5], Type),
+    Somn([char; 5]),
+    Func([char; 5]),
+    Builtin(BasicFn),
+    Inp(u16),
+
     Rel(BinOp),
+    Assign,
+    Increment,
+    
     Begin(u16),
     End(u16),
     LoopBegin(u16),
     LoopEnd(u16),
     Comma,
-    Assign,
-    Increment,
-    Var([char; 5], Type),
-    Func([char; 5]),
-    Inp(u16),
-    Builtin(BasicFn),
-    Somn([char; 5]),
+    Condition,
     Nomn,
 }
 impl Bat {
@@ -229,6 +232,7 @@ fn encode_one(
 
         "=" => return Bat::Assign,
         "++" => return Bat::Increment,
+        "--" => return Bat::Condition,
 
         "exp" => return Bat::Builtin(BasicFn::Exponential),
         "ln" => return Bat::Builtin(BasicFn::NaturalLog),
@@ -288,13 +292,27 @@ fn tokenize(
 }
 
 fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
-        match operation {
-        BinOp::Add => Bat::Val(Type::C( first.extract_val().get_comp() + last.extract_val().get_comp() )),
-        BinOp::Sub => Bat::Val(Type::C( first.extract_val().get_comp() - last.extract_val().get_comp() )),
-        BinOp::Mul => Bat::Val(Type::C( first.extract_val().get_comp() * last.extract_val().get_comp() )),
-        BinOp::Div => Bat::Val(Type::C( first.extract_val().get_comp() / last.extract_val().get_comp() )),
-        BinOp::Pow => Bat::Val(Type::C( first.extract_val().get_comp().pow(last.extract_val().get_comp()) )),
-    }
+    match (first, last) {
+        (Bat::Val(Type::C(v1)), Bat::Val(Type::C(v2))) => {
+            return match operation {
+                BinOp::Add => Bat::Val(Type::C( v1 + v2 )),
+                BinOp::Sub => Bat::Val(Type::C( v1 - v2 )),
+                BinOp::Mul => Bat::Val(Type::C( v1 * v2 )),
+                BinOp::Div => Bat::Val(Type::C( v1 / v2 )),
+                BinOp::Pow => Bat::Val(Type::C( v1.pow(v2) )),
+            }
+        },
+        (Bat::Val(Type::N(v1)), Bat::Val(Type::N(v2))) => {
+            return match operation {
+                BinOp::Add => Bat::Val(Type::N( v1 + v2 )),
+                BinOp::Sub => Bat::Val(Type::N( v1 - v2 )),
+                BinOp::Mul => Bat::Val(Type::N( v1 * v2 )),
+                BinOp::Div => Bat::Val(Type::N( v1 / v2 )),
+                BinOp::Pow => Bat::Val(Type::N( v1.pow(v2 as u32) )),
+            }
+        }
+        _ => panic!("bro is trying to use operators on non-numbers smh"),
+    };
 }
 fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize, bool)> {
     let mut start: Option<usize> = None;

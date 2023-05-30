@@ -32,7 +32,7 @@ Parenthesis dont need spacing, but the operators do. Also, because I'm cool, dot
 
 **number parsing:**
 
-Numbers can be interpreted in a variety of ways, but they all are stored as a complex number of two `f64`s. The parsing function for this homemade `Comp` type basically searches for "i" and a "+" or a "-". This means that within one complex number, the spaces surround "+" and "-" can be omitted.
+Numbers can be interpreted in a variety of ways, but Solvation only stores them as one of three types: the `Comp` for complex numbers (containing two `f64`s), `u16`, and `bool`. The parsing function for this homemade `Comp` type basically searches for "i" and a "+" or a "-". This means that within one complex number, the spaces surround "+" and "-" can be omitted, but they can also still be used and it's okay.
 
 ```
 3.0
@@ -44,6 +44,8 @@ Numbers can be interpreted in a variety of ways, but they all are stored as a co
 9i
 [Σ] 0+9i
 ```
+
+By default, all numbers will be parsed as `Comp`s, so that they can operate with other non-natural numbers. To indicate a `u16` value, use the leading-quote character as a prefix. The `++` operator is also available for the `u16` type, and it just increments a variable by one.
 
 **variables:**
 
@@ -60,16 +62,11 @@ x * λ
 [Σ] Done
 x * λ
 [Σ] 24
-```
-
-Values in Solvation currently take on one of three types: `Comp` (my homemade complex numbers), `u16` and `bool`. By default, all numbers will be parsed as complex numbers, for consistent arithmetic. To create a `u16`, prefix the value with ``` ` ```. The `++` operator is available to increment `u16` values by one.
-
-```
-x = `1
+n = `1
 [Σ] Done
-x ++
+n ++
 [Σ] Done
-x
+n
 [Σ] 2
 ```
 

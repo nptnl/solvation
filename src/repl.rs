@@ -1,4 +1,5 @@
 use crate::math::comp::Comp;
+use crate::math::rat::Rat;
 use crate::math::{prim, trig};
 use crate::preset;
 use crate::preset::BasicFn;
@@ -34,7 +35,10 @@ pub fn roll() {
                 if let Bat::Val(_) | Bat::Var(_, _) = ans {
                     variables.insert( ['a', 'n', 's', ' ', ' '], ans.extract_val() );
                 }
-                println!("[Σ] {ans}");
+                match ans {
+                    Bat::Nomn => (),
+                    _ => println!("[Σ] {ans}"),
+                }
             },
         };
     }
@@ -136,6 +140,7 @@ pub(crate) enum BinOp {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum Type {
     C(Comp),
+    Q(Rat),
     N(u16),
     B(bool),
 }
@@ -169,6 +174,7 @@ impl std::str::FromStr for Type {
             }
         }
         if let Ok(v) = slice.parse::<bool>() { return Ok(Self::B(v)) }
+        if let Ok(v) = slice.parse::<Rat>() { return Ok(Self::Q(v)) }
         match slice.parse::<Comp>() {
             Ok(v) => Ok(Self::C(v)),
             Err(e) => Err(e),
@@ -179,6 +185,7 @@ impl std::fmt::Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::C(v) => write!(f, "{}", v),
+            Self::Q(v) => write!(f, "{}", v),
             Self::N(v) => write!(f, "{}", v),
             Self::B(v) => write!(f, "{}", v),
         }
@@ -309,6 +316,15 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::N( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::N( v1 / v2 )),
                 BinOp::Pow => Bat::Val(Type::N( v1.pow(v2 as u32) )),
+            }
+        },
+        (Type::Q(v1), Type::Q(v2)) => {
+            return match operation {
+                BinOp::Add => Bat::Val(Type::Q( v1 + v2 )),
+                BinOp::Sub => Bat::Val(Type::Q( v1 - v2 )),
+                BinOp::Mul => Bat::Val(Type::Q( v1 * v2 )),
+                BinOp::Div => Bat::Val(Type::Q( v1 / v2 )),
+                BinOp::Pow => Bat::Nomn,
             }
         }
         _ => panic!("bro is trying to use operators on non-numbers smh"),

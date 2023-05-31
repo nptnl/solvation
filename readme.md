@@ -32,7 +32,7 @@ Parenthesis dont need spacing, but the operators do. Also, because I'm cool, dot
 
 **number parsing:**
 
-Numbers can be interpreted in a variety of ways, but Solvation only stores them as one of three types: the `Comp` for complex numbers (containing two `f64`s), `u16`, and `bool`. The parsing function for this homemade `Comp` type basically searches for "i" and a "+" or a "-". This means that within one complex number, the spaces surround "+" and "-" can be omitted, but they can also still be used and it's okay.
+Numbers can be interpreted in a variety of ways, but Solvation only stores them as one of four types: the `Comp` for complex numbers (containing two `f64`s), the `Rat` for ratinal fractions (containing two `i32`s), `u16`, and `bool`. The parsing function for this homemade `Comp` type basically searches for "i" and a "+" or a "-". This means that within one complex number, the spaces surround "+" and "-" can be omitted, but they can also still be used and it's okay.
 
 ```
 3.0
@@ -45,7 +45,14 @@ Numbers can be interpreted in a variety of ways, but Solvation only stores them 
 [Σ] 0+9i
 ```
 
-By default, all numbers will be parsed as `Comp`s, so that they can operate with other non-natural numbers. To indicate a `u16` value, use the leading-quote character as a prefix. The `++` operator is also available for the `u16` type, and it just increments a variable by one.
+By default, all numbers will be parsed as `Comp`s, so that they can operate with other non-natural numbers. To indicate a `u16` value, use the leading-quote character as a prefix. The `++` operator is also available for the `u16` type, and it just increments a variable by one. To indicate a `Rat` value, use a dividing `/` in the middle of the token without spacing. Exponentiation does not work for `Rat`.
+
+```
+2/6
+[Σ] 1/3
+1/3 + 3/4
+[Σ] 13/12
+```
 
 **variables:**
 

@@ -102,7 +102,7 @@ impl ops::DivAssign<Comp> for Comp {
 
 impl std::str::FromStr for Comp {
     type Err = ();
-    fn from_str(slice: &str) -> Result<Comp, Self::Err> {
+    fn from_str(slice: &str) -> Result<Self, Self::Err> {
         let mut chlist = slice.chars();
         let last = chlist.clone().count() - 1;
         if chlist.nth(last).unwrap() == 'i' {

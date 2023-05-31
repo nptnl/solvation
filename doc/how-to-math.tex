@@ -276,5 +276,90 @@ That was a rather enjoyable derivation, yes? Let's go for $\mathrm{acos}(x)$ now
     \mathrm{asec}(x) &= \mathrm{acos}(x^{-1}) \\
 \end{align*}
 
+We gotta power through some inverse hyperbolic real quick:
+
+\begin{align*}
+    y &= \mathrm{asinh}(x) \\
+    \mathrm{sinh}(y) &= x \\
+    \frac{1}{2} (e^y - e^{-y}) &= x \\
+    e^y - e^{-y} &= 2x \\
+    e^y - 2x - e^{-y} &= 0 \\
+    e^{2y} - 2x e^y - 1 &= 0 \\
+\end{align*}
+\begin{align*}
+    e^y &= \frac{ -(-2x) ± √{(-2x)² - 4(1)(-1)} }{2(1)} \\
+    e^y &= \frac{ 2x ± √{4x² + 4} }{2} \\
+    e^y &= \frac{ 2x ± 2 √{x² + 1} }{2} \\
+    e^y &= x ± √{x² + 1} \\
+    y &= \ln(x ± √{x² + 1}) \\
+    \mathrm{asinh}(x) &= \ln(x ± √{x² + 1})
+\end{align*}
+
+\begin{align*}
+    y &= \mathrm{acosh}(x) \\
+    \mathrm{cosh}(y) &= x \\
+    \frac{1}{2} (e^y + e^{-y}) &= x \\
+    e^y + e^{-y} &= 2x \\
+    e^y - 2x + e^{-y} &= 0 \\
+    e^{2y} - 2x e^y + 1 &= 0 \\
+\end{align*}
+\begin{align*}
+    e^y &= \frac{ -(-2x) ± √{(-2x)² - 4(1)1} }{2(1)} \\
+    e^y &= \frac{ 2x ± √{4x² - 4} }{2} \\
+    e^y &= \frac{ 2x ± 2 √{x² - 1} }{2} \\
+    e^y &= x ± √{x² - 1} \\
+    y &= \ln(x ± √{x² - 1}) \\
+    \mathrm{acosh}(x) &= \ln(x ± √{x² - 1})
+\end{align*}
+
+\begin{align*}
+    y &= \mathrm{atanh}(x) \\
+    \mathrm{tanh}(y) &= x \\
+    \frac{e^y - e^{-y}}{e^y + e^{-y}} &= x \\
+    e^y - e^{-y} &= (e^y + e^{-y}) x \\
+    e^y - e^{-y} &= x e^y + x e^{-y} \\
+    e^{2y} - 1 &= x e^{2y} + x \\
+    - (x + 1) &= (x - 1) e^{2y} \\
+    (-1) \frac{x + 1}{x - 1} &= e^{2y} \\
+    2y &= \ln((-1) \frac{x + 1}{x - 1}) \\
+    2y &= \ln(-1) + \ln(\frac{x + 1}{x - 1}) \\
+    2y &= π i + \ln(\frac{x + 1}{x - 1}) \\
+    y &= \frac{π}{2} i + \ln(\frac{x + 1}{x - 1}) \\
+    \mathrm{atanh}(x) &= \frac{π}{2} i + \frac{1}{2} \ln(\frac{x + 1}{x - 1})
+\end{align*}
+
+\begin{align*}
+    y &= \mathrm{acoth}(x) \\
+    \mathrm{coth}(y) &= x \\
+    \frac{e^y + e^{-y}}{e^y - e^{-y}} &= x \\
+    e^y + e^{-y} &= (e^y - e^{-y}) x \\
+    e^y + e^{-y} &= x e^y - x e^{-y} \\
+    e^{2y} + 1 &= x e^{2y} - x \\
+    x + 1 &= (x - 1) e^{2y} \\
+    \frac{x + 1}{x - 1} &= e^{2y} \\
+    2y &= \ln(\frac{x + 1}{x - 1}) \\
+    y &= \frac{1}{2} \ln(\frac{x + 1}{x - 1}) \\
+    \mathrm{acoth}(x) &= \frac{1}{2} \ln(\frac{x + 1}{x - 1})
+\end{align*}
+
+\begin{align*}
+    y &= \mathrm{acsch}(x) \\
+    \mathrm{csch}(y) &= x \\
+    (\mathrm{sinh}(y))^{-1} &= x \\
+    \mathrm{sinh}(y) &= x^{-1} \\
+    y &= \mathrm{sinh}(x^{-1}) \\
+    \mathrm{acsch}(x) &= \mathrm{sinh}(x^{-1})
+\end{align*}
+\begin{align*}
+    y &= \mathrm{asech}(x) \\
+    \mathrm{sech}(y) &= x \\
+    (\mathrm{cosh}(y))^{-1} &= x \\
+    \mathrm{cosh}(y) &= x^{-1} \\
+    y &= \mathrm{cosh}(x^{-1}) \\
+    \mathrm{asech}(x) &= \mathrm{cosh}(x^{-1})
+\end{align*}
+
+...And now we'll never have to deal with trig derivations again!
+
 \end{multicols}
 \end{document}

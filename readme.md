@@ -114,3 +114,18 @@ n
 x
 [Σ] 21
 ```
+
+**built-in functions:**
+
+Currently, the only stable built-in functions outside of trigonometry are `exp(x)` and `ln(x)`. These allow the exponentiatin operator `^` to function, and are essential in buliding many other functions. So far, trig, hyperbolic trig, and inverse trig are implemented. I'll get to inverse hyperbolic trig later.
+
+```
+sin(π / 4)
+[Σ] 0.7071266960970306-0.00001634874552874921i
+asin(sin(π / 4))
+[Σ] 0.7860064746073497-0.000717974405438253i
+π / 4
+0.785398163375
+```
+
+`exp(x)` and `ln(x)` are only approximate, so error is always present.

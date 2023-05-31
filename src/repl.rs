@@ -292,8 +292,8 @@ fn tokenize(
 }
 
 fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
-    match (first, last) {
-        (Bat::Val(Type::C(v1)), Bat::Val(Type::C(v2))) => {
+    match (first.extract_val(), last.extract_val()) {
+        (Type::C(v1), Type::C(v2)) => {
             return match operation {
                 BinOp::Add => Bat::Val(Type::C( v1 + v2 )),
                 BinOp::Sub => Bat::Val(Type::C( v1 - v2 )),
@@ -302,7 +302,7 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Pow => Bat::Val(Type::C( v1.pow(v2) )),
             }
         },
-        (Bat::Val(Type::N(v1)), Bat::Val(Type::N(v2))) => {
+        (Type::N(v1), Type::N(v2)) => {
             return match operation {
                 BinOp::Add => Bat::Val(Type::N( v1 + v2 )),
                 BinOp::Sub => Bat::Val(Type::N( v1 - v2 )),

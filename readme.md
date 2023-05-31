@@ -60,19 +60,14 @@ To declare a new variable, use the `=` operator between its name and value. This
 
 ```
 x = 4
-[Σ] Done
 λ = 3 + 2
-[Σ] Done
 x * λ
 [Σ] 20
 λ = 6
-[Σ] Done
 x * λ
 [Σ] 24
 n = `1
-[Σ] Done
 n ++
-[Σ] Done
 n
 [Σ] 2
 ```
@@ -98,28 +93,25 @@ You can complete multiple calculations in one line, although only one (the last 
 
 ```
 x = `1, y = `2
-[Σ] Done
 x ++, y ++
-[Σ] Done
 x
 [Σ] 2
 y
 [Σ] 2 
 ```
 
-**iterators:**
+**loops and conditionals:**
 
-To iterate a calculation, enclose the loop in [brackets]. As of right now, this just iterates six times (a bit goofy I reckon). Once conditional jumps are implemented, I'll add a `break` command. Your loops should probably contain non-returning statements...
+To iterate a calculation, enclose the loop in [brackets]. These loops iterate without end, unless a break statement is added using `∇`. Conditionals are notated similarly to functions, but with a `:` as the same. The first argument is the condition to check, and the second is the action to do if it is `true`. Loops can only end when there is a `∇` inside, so your loop will probably contain `∇` within a conditional. As of right now, the break key `∇` follows through the current iteration of the loop, but doesn't start a new one. This may be fixed later.
 
 ```
-x = 0, n = 1
-[Σ] Done
-[n = n + 1, x = x + n]
-[Σ] Done
-n
-[Σ] 7
+x = `0
+:(x == `3, 2)
+:(x == `0, 2)
+[Σ] 2
+[ :(x == `50, ∇), x ++ ]
 x
-[Σ] 21
+[Σ] 51
 ```
 
 **built-in functions:**
@@ -132,7 +124,7 @@ sin(π / 4)
 asin(sin(π / 4))
 [Σ] 0.7860064746073497-0.000717974405438253i
 π / 4
-0.785398163375
+[Σ] 0.785398163375
 ```
 
 `exp(x)` and `ln(x)` are only approximate, so error is always present.

@@ -37,6 +37,7 @@ pub fn roll() {
                 }
                 match ans {
                     Bat::Nomn => (),
+                    Bat::Break => (),
                     _ => println!("[Σ] {ans}"),
                 }
             },
@@ -89,6 +90,7 @@ pub(crate) enum Bat {
     LoopEnd(u16),
     Comma,
     Condition,
+    Break,
     Nomn,
 }
 impl Bat {
@@ -125,6 +127,7 @@ impl std::fmt::Display for Bat {
         match self {
             Bat::Val(v) => write!(f, "{}", *v),
             Bat::Var(_, v) => write!(f, "{}", *v),
+            Bat::Break => write!(f, "BREAK"),
             _ => write!(f, "Done"),
         }
     }
@@ -136,6 +139,8 @@ pub(crate) enum BinOp {
     Mul,
     Div,
     Pow,
+
+    Equal,
 }
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum Type {
@@ -145,7 +150,7 @@ pub(crate) enum Type {
     B(bool),
 }
 impl Type {
-    fn _get_bool(self) -> bool {
+    fn get_bool(self) -> bool {
         match self {
             Self::B(v) => v,
             e => panic!("attempted to extract boolean from non-bool {:?}", e),
@@ -239,7 +244,9 @@ fn encode_one(
 
         "=" => return Bat::Assign,
         "++" => return Bat::Increment,
-        "--" => return Bat::Condition,
+        ":" => return Bat::Condition,
+        "==" => return Bat::Rel(BinOp::Equal),
+        "∇" => return Bat::Break,
 
         "exp" => return Bat::Builtin(BasicFn::Exponential),
         "ln" => return Bat::Builtin(BasicFn::NaturalLog),
@@ -307,6 +314,7 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::C( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::C( v1 / v2 )),
                 BinOp::Pow => Bat::Val(Type::C( v1.pow(v2) )),
+                BinOp::Equal => Bat::Val(Type::B(v1 == v2)),
             }
         },
         (Type::N(v1), Type::N(v2)) => {
@@ -316,6 +324,7 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::N( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::N( v1 / v2 )),
                 BinOp::Pow => Bat::Val(Type::N( v1.pow(v2 as u32) )),
+                BinOp::Equal => Bat::Val(Type::B(v1 == v2)),
             }
         },
         (Type::Q(v1), Type::Q(v2)) => {
@@ -325,6 +334,7 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::Q( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::Q( v1 / v2 )),
                 BinOp::Pow => Bat::Nomn,
+                BinOp::Equal => Bat::Val(Type::B(v1 == v2)),
             }
         }
         _ => panic!("bro is trying to use operators on non-numbers smh"),
@@ -335,14 +345,23 @@ fn find_deepest(content: Vec<Bat>) -> Option<(usize, usize, bool)> {
     let mut finish: Option<usize> = None;
     let mut s_max: u16 = 0;
     let mut f_max: u16 = 0;
+    let mut loping: bool = false;
     for (indx, token) in content.iter().enumerate() {
         match *token {
-            Bat::Begin(d)| Bat::LoopBegin(d) => {
-                if d > s_max { start = Some(indx); s_max = d }
-            }
-            Bat::End(d) | Bat::LoopEnd(d) => {
-                if d > f_max { finish = Some(indx); f_max = d }
-            }
+            Bat::Begin(d) => {
+                if loping { () }
+                else if d > s_max { start = Some(indx); s_max = d }
+            },
+            Bat::End(d) => {
+                if loping { () }
+                else if d > f_max { finish = Some(indx); f_max = d }
+            },
+            Bat::LoopBegin(d) => {
+                if d > s_max { start = Some(indx); s_max = d; loping = true; }
+            },
+            Bat::LoopEnd(d) => {
+                if d > f_max { finish = Some(indx); f_max = d; loping = true; }
+            },
             _ => (),
         }
     };
@@ -440,6 +459,24 @@ fn basic_replace(
     current.drain(start-1..end+1);
     current.insert(start-1, Bat::Val(Type::C(replace)));
 }
+fn conditional_replace(
+    current: &mut Vec<Bat>,
+    start: usize, end: usize,
+    varlist: &mut HashMap<[char; 5], Type>,
+) {
+    let split: Vec<Vec<Bat>> = current[start+1..end].split(|&x| x == Bat::Comma)
+    .map(|x| x.to_vec()).collect();
+    let mut inputs: Vec<Bat> = Vec::new();
+    for expression in split {
+        inputs.push(order_operations(expression, varlist))
+    }
+    let replace: Bat;
+    if inputs[0].extract_val().get_bool() { replace = inputs[1] }
+    else { replace = Bat::Nomn }
+    current.drain(start-1..end+1);
+    current.insert(start-1, replace);
+}
+
 fn do_assign(
     current: &mut Vec<Bat>,
     indx: usize,
@@ -493,7 +530,18 @@ fn order_operations(
             Some(indx) =>  { do_increment(&mut shrinking, indx, varlist); continue },
             None => (),
         }
-        return shrinking[shrinking.len()-1];
+        maybe = shrinking.clone().iter().position(|&x| x == Bat::Rel(BinOp::Equal));
+        match maybe {
+            Some(indx) =>  { bin_replace(&mut shrinking, indx); continue },
+            None => (),
+        }
+
+        let mut indx: usize = 0;
+        loop {
+            if indx == shrinking.len() { return Bat::Nomn }
+            if shrinking[indx] != Bat::Nomn && shrinking[indx] != Bat::Comma { return shrinking[indx] }
+            indx += 1;
+        }
     }
 }
 fn complete(
@@ -512,6 +560,7 @@ fn complete(
                     Bat::Func(name) => func_replace(&mut shrinking, s, f, name, varlist, &fnlist),
                     Bat::Builtin(_) => basic_replace(&mut shrinking, s, f, varlist),
                     Bat::Val(_) | Bat::End(_) => shrinking.insert(s, Bat::Rel(BinOp::Mul)),
+                    Bat::Condition => conditional_replace(&mut shrinking, s, f, varlist),
                     _ => paren_replace(&mut shrinking, s, f, varlist),
                 }
             },
@@ -526,12 +575,10 @@ fn exec_iter(
     fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>,
 ) {
     let mut expr: Bat;
-    let mut iter: u16 = 0;
     loop {
         update_vars(current, varlist);
         expr = complete(current[start+1..end].to_vec(), varlist, fnlist);
-        iter += 1;
-        if iter > 5 {
+        if expr == Bat::Break {
             current.drain(start..end+1);
             current.insert(start, expr);
             break

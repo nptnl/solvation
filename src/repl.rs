@@ -13,12 +13,17 @@ pub fn roll() {
     for var in preset::PRE_VAR {
         variables.insert(var.0, Type::C(var.1));
     }
-
-    functions.insert(['L', 'D', ' ', ' ', ' '], (2, preset::LIMIT_DVT.to_vec()));
-
+    
+    let mut pre = preset::PRE_DO.iter();
     let mut chain: Vec<String>;
+    let mut cur;
+
     loop {
-        chain = split_input(take_input());
+        cur = pre.next();
+        chain = match cur {
+            Some(v) => split_input(v.to_string()),
+            None => split_input(take_input()),
+        };
 
         match chain[0].as_str() {
             "def" => {
@@ -141,6 +146,8 @@ pub(crate) enum BinOp {
     Pow,
 
     Equal,
+    Less,
+    Greater,
 }
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum Type {
@@ -246,6 +253,8 @@ fn encode_one(
         "++" => return Bat::Increment,
         ":" => return Bat::Condition,
         "==" => return Bat::Rel(BinOp::Equal),
+        "<" => return Bat::Rel(BinOp::Less),
+        ">" => return Bat::Rel(BinOp::Greater),
         "∇" => return Bat::Break,
 
         "exp" => return Bat::Builtin(BasicFn::Exponential),
@@ -314,7 +323,10 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::C( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::C( v1 / v2 )),
                 BinOp::Pow => Bat::Val(Type::C( v1.pow(v2) )),
+
                 BinOp::Equal => Bat::Val(Type::B(v1 == v2)),
+                BinOp::Less => Bat::Val(Type::B(v1 < v2)),
+                BinOp::Greater => Bat::Val(Type::B(v1 > v2)),
             }
         },
         (Type::N(v1), Type::N(v2)) => {
@@ -324,7 +336,10 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::N( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::N( v1 / v2 )),
                 BinOp::Pow => Bat::Val(Type::N( v1.pow(v2 as u32) )),
+
                 BinOp::Equal => Bat::Val(Type::B(v1 == v2)),
+                BinOp::Less => Bat::Val(Type::B(v1 < v2)),
+                BinOp::Greater => Bat::Val(Type::B(v1 > v2)),
             }
         },
         (Type::Q(v1), Type::Q(v2)) => {
@@ -334,7 +349,10 @@ fn binary_operate( operation: BinOp, first: Bat, last: Bat ) -> Bat {
                 BinOp::Mul => Bat::Val(Type::Q( v1 * v2 )),
                 BinOp::Div => Bat::Val(Type::Q( v1 / v2 )),
                 BinOp::Pow => Bat::Nomn,
+                
                 BinOp::Equal => Bat::Val(Type::B(v1 == v2)),
+                BinOp::Less => Bat::Val(Type::B(v1 < v2)),
+                BinOp::Greater => Bat::Val(Type::B(v1 > v2)),
             }
         }
         _ => panic!("bro is trying to use operators on non-numbers smh"),
@@ -530,7 +548,8 @@ fn order_operations(
             Some(indx) =>  { do_increment(&mut shrinking, indx, varlist); continue },
             None => (),
         }
-        maybe = shrinking.clone().iter().position(|&x| x == Bat::Rel(BinOp::Equal));
+        maybe = shrinking.clone().iter().position(|&x|
+        x == Bat::Rel(BinOp::Equal) || x == Bat::Rel(BinOp::Less) || x == Bat::Rel(BinOp::Greater));
         match maybe {
             Some(indx) =>  { bin_replace(&mut shrinking, indx); continue },
             None => (),
@@ -575,6 +594,7 @@ fn exec_iter(
     fnlist: &HashMap<[char; 5], (u16, Vec<Bat>)>,
 ) {
     let mut expr: Bat;
+    println!("processing...");
     loop {
         update_vars(current, varlist);
         expr = complete(current[start+1..end].to_vec(), varlist, fnlist);
@@ -584,6 +604,7 @@ fn exec_iter(
             break
         }
     }
+    println!("complete!");
 }
 fn update_vars(
     current: &mut Vec<Bat>,

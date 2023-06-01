@@ -1,4 +1,3 @@
-use crate::repl::{Bat, BinOp, Type};
 use crate::math::comp::Comp;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -37,13 +36,10 @@ pub(crate) static PRE_VAR: [([char; 5], Comp); 3] = [
 ];
 
 
-static DX: Comp = Comp { r: 0.00000000001, i: 0.0 };
-
-pub(crate) static LIMIT_DVT: [Bat; 15] = [
-    Bat::Begin(1),
-    Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::Rel(BinOp::Add), Bat::Val(Type::C(DX)), Bat::End(2),
-    Bat::Rel(BinOp::Sub),
-    Bat::Inp(1), Bat::Begin(2), Bat::Inp(2), Bat::End(2),
-    Bat::End(1),
-    Bat::Rel(BinOp::Div), Bat::Val(Type::C(DX)),
+pub static PRE_DO: [&str; 5] = [
+"σ.tot = 0",
+"σ.x = 0",
+"σ.dx = 0.00001",
+"def RMN(f, x1, x2) σ.x = x1, [ σ.tot = σ.tot + f(σ.x) * σ.dx, σ.x = σ.x + σ.dx, :(σ.x > 1, ∇) ], ans = σ.tot",
+"def LD(f, x) ans = ( f(x + σ.dx) - f(x) ) / dx",
 ];

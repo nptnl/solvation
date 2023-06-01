@@ -41,7 +41,11 @@ impl Comp {
     }
 }
 
-impl cmp::Eq for Comp {}
+impl cmp::PartialOrd for Comp {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.r.partial_cmp(&other.r)
+    }
+}
 impl ops::Neg for Comp {
     type Output = Self;
     fn neg(self) -> Self {

@@ -1,4 +1,4 @@
-use std::ops;
+use std::{ops, cmp};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Rat {
@@ -38,6 +38,13 @@ fn gcf(inp1: i32, inp2: i32) -> (i32, bool) {
     }
 }
 
+impl PartialOrd for Rat {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        let res: Rat = *self - *other;
+        res.n.partial_cmp(&0)
+    }
+}
+
 impl ops::Add<Rat> for Rat {
     type Output = Self;
     fn add(self, other: Self) -> Self {
@@ -66,6 +73,7 @@ impl ops::Div<Rat> for Rat {
 impl std::str::FromStr for Rat {
     type Err = ();
     fn from_str(slice: &str) -> Result<Self, Self::Err> {
+        if slice.len() < 3 { return Err(()) }
         match slice.rfind('/') {
             Some(v) => Ok( Self::new(
                 slice[..v].parse::<i32>().unwrap(),

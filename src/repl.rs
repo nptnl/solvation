@@ -2,7 +2,7 @@ use crate::math::comp::Comp;
 use crate::math::rat::Rat;
 use crate::math::{prim, trig};
 use crate::preset;
-use crate::preset::BasicFn;
+use crate::math::BasicFn;
 use std::collections::HashMap;
 
 pub fn roll() {
@@ -282,6 +282,13 @@ fn encode_one(
         "sech" => return Bat::Builtin(BasicFn::HypSecant),
         "csch" => return Bat::Builtin(BasicFn::HypCosecant),
 
+        "asinh" => return Bat::Builtin(BasicFn::ArcHypSine),
+        "acosh" => return Bat::Builtin(BasicFn::ArcHypCosine),
+        "atanh" => return Bat::Builtin(BasicFn::ArcHypTangent),
+        "acoth" => return Bat::Builtin(BasicFn::ArcHypCotangent),
+        "asech" => return Bat::Builtin(BasicFn::ArcHypSecant),
+        "acsch" => return Bat::Builtin(BasicFn::ArcHypCosecant),
+
         _ => (),
     };
     if word.chars().nth(0).unwrap() == '#' {
@@ -472,6 +479,13 @@ fn basic_replace(
         BasicFn::HypCotangent => trig::coth(first),
         BasicFn::HypSecant => trig::sech(first),
         BasicFn::HypCosecant => trig::csch(first),
+
+        BasicFn::ArcHypSine => trig::asinh(first),
+        BasicFn::ArcHypCosine => trig::acosh(first),
+        BasicFn::ArcHypTangent => trig::atanh(first),
+        BasicFn::ArcHypCotangent => trig::acoth(first),
+        BasicFn::ArcHypSecant => trig::asech(first),
+        BasicFn::ArcHypCosecant => trig::acsch(first),
 
     };
     current.drain(start-1..end+1);

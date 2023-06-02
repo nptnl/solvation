@@ -70,3 +70,22 @@ pub fn csch(x: Comp) -> Comp {
     let series: Comp = exp(x);
     Comp::nre(2.0) / (series - series.inv())
 }
+
+pub fn asinh(x: Comp) -> Comp {
+    ln(x - comp_sqrt(x*x + ONE))
+}
+pub fn acosh(x: Comp) -> Comp {
+    ln(x - comp_sqrt(x*x - ONE))
+}
+pub fn atanh(x: Comp) -> Comp {
+    Comp::nim(0.5*PI) + Comp::nre(0.5) * ln((x + ONE) / (x - ONE))
+}
+pub fn acoth(x: Comp) -> Comp {
+    Comp::nre(0.5) * ln((x + ONE) / (x - ONE))
+}
+pub fn asech(x: Comp) -> Comp {
+    acosh(x.inv())
+}
+pub fn acsch(x: Comp) -> Comp {
+    asinh(x.inv())
+}

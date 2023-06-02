@@ -40,6 +40,6 @@ pub static PRE_DO: [&str; 5] = [
 "σ.tot = 0",
 "σ.x = 0",
 "σ.dx = 0.00001",
-"def RMN(f, x1, x2) σ.x = x1, [ σ.tot = σ.tot + f(σ.x) * σ.dx, σ.x = σ.x + σ.dx, :(σ.x > 1, ∇) ], ans = σ.tot",
+"def RMN(f, x1, x2) σ.x = x1, [ σ.tot = σ.tot + f(σ.x) * σ.dx, σ.x = σ.x + σ.dx, :(σ.x > x2, ∇) ], ans = σ.tot",
 "def LD(f, x) ans = ( f(x + σ.dx) - f(x) ) / dx",
 ];

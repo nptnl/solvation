@@ -1,8 +1,24 @@
-<img src="./graphic/sigma.png">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="./graphic/sigma-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="./graphic/sigma-dark.png">
+  <img>
+</picture>
 
-<br/><br/>
+<br/>
 
-<img src="./graphic/Solvation.png">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="./graphic/neptunal-light.png" width=36% >
+  <source media="(prefers-color-scheme: dark)" srcset="./graphic/neptunal-dark.png" width=36%>
+  <img>
+</picture>
+
+<br/>
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="./graphic/solvation-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="./graphic/solvation-dark.png">
+  <img>
+</picture>
 
 <br/><br/>
 
@@ -16,7 +32,7 @@ don't even try to run it unless you want to contribute (or fix my terrible forma
 
 math is explained in [./doc/how-to-math.pdf](./doc/how-to-math.pdf)
 
-<img src="./graphic/tex-meme.png" width=300>
+<img src="./graphic/tex-meme.png" width=50%>
 
 **basic syntax:**
 

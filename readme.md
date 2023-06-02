@@ -4,7 +4,7 @@
   <img>
 </picture>
 
-<br/>
+<br/><br/>
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="./graphic/neptunal-light.png" width=36% >
@@ -12,7 +12,7 @@
   <img>
 </picture>
 
-<br/>
+<br/><br/>
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="./graphic/solvation-light.png">

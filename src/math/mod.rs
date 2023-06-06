@@ -37,5 +37,7 @@ pub enum BasicFn {
     ArcHypCotangent,
     ArcHypSecant,
     ArcHypCosecant,
+
+    Sqrt,
     
 }

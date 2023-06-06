@@ -289,6 +289,8 @@ fn encode_one(
         "asech" => return Bat::Builtin(BasicFn::ArcHypSecant),
         "acsch" => return Bat::Builtin(BasicFn::ArcHypCosecant),
 
+        "sqrt" | "√" => return Bat::Builtin(BasicFn::Sqrt),
+
         _ => (),
     };
     if word.chars().nth(0).unwrap() == '#' {
@@ -486,6 +488,8 @@ fn basic_replace(
         BasicFn::ArcHypCotangent => trig::acoth(first),
         BasicFn::ArcHypSecant => trig::asech(first),
         BasicFn::ArcHypCosecant => trig::acsch(first),
+
+        BasicFn::Sqrt => crate::math::comp::comp_sqrt(first),
 
     };
     current.drain(start-1..end+1);

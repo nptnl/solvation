@@ -84,4 +84,3 @@ pub fn ln(x: Comp) -> Comp {
 pub fn log(n: Comp, x: Comp) -> Comp {
     ln(x) / ln(n)
 }
-    

@@ -206,7 +206,7 @@ impl std::fmt::Display for Type {
 
 fn take_input() -> String {
     let mut stringy: String = String::new();
-    std::io::stdin().read_line(&mut stringy).expect("tf u think ur doing");
+    std::io::stdin().read_line(&mut stringy).expect("cannot read input");
     stringy
 }
 fn split_input(raw: String) -> Vec<String> {
